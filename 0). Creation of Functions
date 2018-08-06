@@ -6,7 +6,40 @@
 
 ### Feature selection functions
 
+## Filter feature selection method using the mRMRE package
 
+mRMR_FS <- function(matrix,exposure,number){
+	tr_data <- data.frame(target=exposure, matrix)
+	tr_data <- mRMR.data(tr_data)
+	set.seed(123)
+	mRMR_object <- mRMR.ensemble(data = tr_data, target_indices = 1, feature_count = number, solution_count = 1)
+	top_features <- unlist(mRMR_object@filters, use.names=FALSE)
+	top_features <- top_features - 1
+	return(top_features)
+}
+
+## Wrapper feature selection method to identify relevant features for modeling using the Random Forest model
+
+varSelCheck_NoReOrder <- function(matrix,exposure){
+  set.seed(123)
+  Up_Samp_DF <- upSample(x=matrix,y=exposure)
+  Up_Features <- Up_Samp_DF[,1:length(colnames(matrix))]
+  Up_Exposure <- Up_Samp_DF[,length(colnames(Up_Samp_DF))]
+  
+  features_matrix <- Up_Features
+  varSel_object <- varSelRF(xdata=features_matrix,Class=Up_Exposure,vars.drop.frac=0.999)
+  varSel_imp <- varSel_object$initialImportance
+  varSel_imp <- as.data.frame(varSel_imp)
+  varSel_imp$Names <- rownames(varSel_imp)
+  varSel_imp <- arrange(varSel_imp, desc(varSel_imp[,1]))
+  
+  for (i in 1:length(rownames(varSel_imp))){
+    varSel_imp$Index[i] <- which(colnames(matrix)==varSel_imp$Names[i])
+  }
+  
+  index_vector <- varSel_imp$Index
+  return(index_vector)
+}
 
 
 
