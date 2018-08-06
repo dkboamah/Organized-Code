@@ -1,0 +1,198 @@
+
+############################Creation of Functions############################
+
+##### The functions listed below were used at some point during data preparation, feature selection, and building of models
+### For convenience the following code could be saved in a .R file and subsequently accessed via the source() command, so individuals would not need to re-write the code in the command line
+
+### Feature selection functions
+
+
+
+
+
+
+############################################################################
+### Data manipulation functions
+
+## The top_features_Matrix function was created to build a matrix of CpG sites and M-values. The inputs are a vector of indexes (determined from a feature selection algorithm) and the matrix that served as an input into the feature selection algorithm.
+
+top_features_Matrix <- function(vector,matrix){
+	feature_matrix <- matrix(,nrow = length(rownames(matrix)), ncol = 0) 
+	for(i in 1:length(vector)){
+		feature_id <- vector[i]
+		feature_matrix <- as.matrix(cbind(feature_matrix, matrix[,feature_id]))
+colnames(feature_matrix)[i] <- colnames(matrix)[feature_id]
+		}
+	length(feature_matrix)
+	return(feature_matrix)
+	}
+
+## The testMatrix_Creation function was created to build a matrix of CpG sites and M-values containing CpG sites of the same identity. The function was created due to the limitation of the top_feautres_Matrix that the indices of one matrix must be in the identical order of another. Additionally, the top_features_Matrix function requires a vector of indices to exist, while the testMatrix_Creation function works with just the two matrices (that derived from the training set and any matrix for Batch 2/test set)
+
+testMatrix_Creation <- function(matrix,testMatrix){
+	index_vector <- vector()
+	
+	for (i in 1:length(colnames(matrix))){
+  		current_index <- which(colnames(testMatrix)==colnames(matrix)[i])
+  		index_vector <- c(index_vector,current_index)
+	}
+	
+	newMatrix <- top_features_Matrix(vector=index_vector,matrix=testMatrix)
+	return(newMatrix)
+}
+
+## The Make_Matrix_K function was created to perform density ratio estimation using the KLIEP method.
+
+Make_Matrix_K <- function(matrix,testMatrix){
+	testingMatrix <- testMatrix
+    
+	for(i in 1:length(colnames(matrix))){
+		dens_object <- densratio(x=matrix[,i],y=testingMatrix[,i],method="KLIEP")
+		weight <- dens_object$compute_density_ratio(testingMatrix[,i])
+		testingMatrix[,i] <- weight*testingMatrix[,i]
+		print(i)
+	}
+    return(testingMatrix)
+}
+
+## The Make_Matrix_U function was created to perform density ratio estimation using the uLSIF method.
+
+Make_Matrix_U <- function(matrix,testMatrix){
+	testingMatrix <- testMatrix
+    
+	for(i in 1:length(colnames(matrix))){
+		dens_object <- densratio(x=matrix[,i],y=testingMatrix[,i],method="uLSIF")
+		weight <- dens_object$compute_density_ratio(testingMatrix[,i])
+		testingMatrix[,i] <- weight*testingMatrix[,i]
+		print(i)
+	}
+    return(testingMatrix)
+}
+
+
+############################################################################
+### Prediction modeling functions
+
+## The following functions were created to build prediction models of type: Random Forests. The following functions produce either the AUC (Area under the ROC curve) and a ROC object (using the pROC package) that can subsequently be added to a plot.
+
+RF_Test_ROC <- function(x,vector,matrix,exposure,testMatrix,testExposure){
+	training_resultsDF_rf <- data.frame(cost=numeric(),ROC=numeric(),Sens=numeric(),Spec=numeric(),ROCSD=numeric(),SenseSD=numeric(),SpecSD=numeric())
+	vector_new <- head(vector, n=x)
+	training_matrix <- top_features_Matrix(vector_new,matrix)
+	testing_matrix <- top_features_Matrix(vector_new,testMatrix)
+	
+	train_control_rf <- trainControl(method = "repeatedcv", number = 5, classProbs = TRUE, summaryFunction = twoClassSummary, verbose = FALSE)
+	train_grid_rf <- expand.grid(mtry=c(as.integer(log2((length(colnames(training_matrix))))),as.integer(sqrt((length(colnames(training_matrix)))))))
+	
+	set.seed(123)
+	modelTrain <- train(x = training_matrix, y = make.names(exposure), classwt=c(1,(length(which(exposure==0)))/(length(which(exposure==1)))), method = "rf", trControl = train_control_rf, tuneGrid = train_grid_rf, metric = "Spec")
+
+	predResults <- predict(modelTrain, newdata = testing_matrix,type="prob")
+	roc_train_results <- roc(make.names(testExposure), predResults$X1)
+	return(roc_train_results)
+}
+
+RF_Test_AUC <- function(x,vector,matrix,exposure,testMatrix,testExposure){
+	training_resultsDF_rf <- data.frame(cost=numeric(),ROC=numeric(),Sens=numeric(),Spec=numeric(),ROCSD=numeric(),SenseSD=numeric(),SpecSD=numeric())
+	vector_new <- head(vector, n=x)
+	training_matrix <- top_features_Matrix(vector_new,matrix)
+	testing_matrix <- top_features_Matrix(vector_new,testMatrix)
+	
+	train_control_rf <- trainControl(method = "repeatedcv", number = 5, classProbs = TRUE, summaryFunction = twoClassSummary, verbose = FALSE)
+	train_grid_rf <- expand.grid(mtry=c(as.integer(log2((length(colnames(training_matrix))))),as.integer(sqrt((length(colnames(training_matrix)))))))
+	
+	set.seed(123)
+	modelTrain <- train(x = training_matrix, y = make.names(exposure), classwt=c(1,(length(which(exposure==0)))/(length(which(exposure==1)))), method = "rf", trControl = train_control_rf, tuneGrid = train_grid_rf, metric = "Spec")
+
+	predResults <- predict(modelTrain, newdata = testing_matrix,type="prob")
+	roc_train_results <- roc(make.names(testExposure), predResults$X1)
+  auc_train_results <- auc(roc_train_results)
+	return(auc_train_results)
+}
+
+## The following functions were created to build prediction models of type: Support Vector Machine w/ linear kernel function (svm-L). The following functions produce either the AUC (Area under the ROC curve) and a ROC object (using the pROC package) that can subsequently be added to a plot.
+
+svmL_Test_ROC <- function(x,vector,matrix,exposure,testMatrix,testExposure){
+	vector_new <- head(vector, n=x)
+	training_matrix <- top_features_Matrix(vector_new,matrix)
+	testing_matrix <- top_features_Matrix(vector_new,testMatrix)
+	
+	train_control_svmL <- trainControl(method = "repeatedcv", number = 5, classProbs = TRUE, summaryFunction = twoClassSummary, verbose = FALSE)
+	train_grid_svmL <- expand.grid(cost=c(10^(-3:2),2^(-5:6)))
+  
+	set.seed(123)
+	modelTrain <- train(x = training_matrix, y = make.names(exposure), classwt=c(1,(length(which(exposure==0)))/(length(which(exposure==1)))), method = "svmLinear2", trControl = train_control_svmL, tuneGrid = train_grid_svmL, metric = "Spec")
+
+	predResults <- predict(modelTrain, newdata = testing_matrix,type="prob")
+	roc_train_results <- roc(make.names(testExposure), predResults$X1)
+	return(roc_train_results)
+}
+
+svmL_Test_AUC <- function(x,vector,matrix,exposure,testMatrix,testExposure){
+	vector_new <- head(vector, n=x)
+	training_matrix <- top_features_Matrix(vector_new,matrix)
+	testing_matrix <- top_features_Matrix(vector_new,testMatrix)
+	
+	train_control_svmL <- trainControl(method = "repeatedcv", number = 5, classProbs = TRUE, summaryFunction = twoClassSummary, verbose = FALSE)
+	train_grid_svmL <- expand.grid(cost=c(10^(-3:2),2^(-5:6)))
+  
+	set.seed(123)
+	modelTrain <- train(x = training_matrix, y = make.names(exposure), classwt=c(1,(length(which(exposure==0)))/(length(which(exposure==1)))), method = "svmLinear2", trControl = train_control_svmL, tuneGrid = train_grid_svmL, metric = "Spec")
+
+	predResults <- predict(modelTrain, newdata = testing_matrix,type="prob")
+	roc_train_results <- roc(make.names(testExposure), predResults$X1)
+	auc_train_results <- auc(roc_train_results)
+	return(auc_train_results)
+}
+
+## The following functions were created to build prediction models of type: Support Vector Machine w/ radial basis function kernel function (svm-rbf). The following functions produce either the AUC (Area under the ROC curve) and a ROC object (using the pROC package) that can subsequently be added to a plot.
+
+svmR_Test_ROC <- function(x,vector,matrix,exposure,testMatrix,testExposure){
+	training_resultsDF_rf <- data.frame(cost=numeric(),ROC=numeric(),Sens=numeric(),Spec=numeric(),ROCSD=numeric(),SenseSD=numeric(),SpecSD=numeric())
+	vector_new <- head(vector, n=x)
+	training_matrix <- top_features_Matrix(vector_new,matrix)
+	testing_matrix <- top_features_Matrix(vector_new,testMatrix)
+	
+	train_control_svmR <- trainControl(method = "repeatedcv", number = 5, classProbs = TRUE, summaryFunction = twoClassSummary, verbose = FALSE)
+	train_grid_svmR <- expand.grid(sigma=c(10^(-6:1)), C=c(10^(-5:2),2^(-5:6)))
+
+	set.seed(123)
+	modelTrain <- train(x = training_matrix, y = make.names(exposure), classwt=c(1,(length(which(exposure==0)))/(length(which(exposure==1)))), method = "svmRadial", trControl = train_control_svmR, tuneGrid = train_grid_svmR, metric = "Spec")
+
+	predResults <- predict(modelTrain, newdata = testing_matrix,type="prob")
+	roc_train_results <- roc(make.names(testExposure), predResults$X1)
+	return(roc_train_results)
+}
+
+svmR_Test_AUC <- function(x,vector,matrix,exposure,testMatrix,testExposure){
+	training_resultsDF_rf <- data.frame(cost=numeric(),ROC=numeric(),Sens=numeric(),Spec=numeric(),ROCSD=numeric(),SenseSD=numeric(),SpecSD=numeric())
+	vector_new <- head(vector, n=x)
+	training_matrix <- top_features_Matrix(vector_new,matrix)
+	testing_matrix <- top_features_Matrix(vector_new,testMatrix)
+	
+	train_control_svmR <- trainControl(method = "repeatedcv", number = 5, classProbs = TRUE, summaryFunction = twoClassSummary, verbose = FALSE)
+	train_grid_svmR <- expand.grid(sigma=c(10^(-6:1)), C=c(10^(-5:2),2^(-5:6)))
+
+	set.seed(123)
+	modelTrain <- train(x = training_matrix, y = make.names(exposure), classwt=c(1,(length(which(exposure==0)))/(length(which(exposure==1)))), method = "svmRadial", trControl = train_control_svmR, tuneGrid = train_grid_svmR, metric = "Spec")
+
+	predResults <- predict(modelTrain, newdata = testing_matrix,type="prob")
+	roc_train_results <- roc(make.names(testExposure), predResults$X1)
+	auc_train_results <- auc(roc_train_results)
+	return(auc_train_results)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
