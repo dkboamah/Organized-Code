@@ -215,6 +215,112 @@ svmR_Test_AUC <- function(x,vector,matrix,exposure,testMatrix,testExposure){
 	return(auc_train_results)
 }
 
+### Prediction modeling functions (10-fold cross-validation performance)
+## The following functions were created to create either ROC objects (to build ROC curves to be plotted) or calculate AUC values from prediction models. 
+
+RF_Train_Best_Tune <- function(x,vector,matrix,exposure){
+ 	vector_new <- head(vector, n=x)
+	training_matrix <- top_features_Matrix(vector_new,matrix)
+
+	train_control_rf <- trainControl(method = "repeatedcv", number = 5, classProbs = TRUE, summaryFunction = twoClassSummary, verbose = FALSE,savePredictions = T)
+	train_grid_rf <- expand.grid(mtry=c(as.integer(log2((length(colnames(training_matrix))))),as.integer(sqrt((length(colnames(training_matrix)))))))
+	
+	set.seed(123)
+	modelTrain <- train(x = training_matrix, y = make.names(exposure), classwt=c(1,(length(which(exposure==0)))/(length(which(exposure==1)))), method = "rf", trControl = train_control_rf, tuneGrid = train_grid_rf, metric = "Spec")
+	
+  	selectedIndices <- (modelTrain$pred$mtry == as.integer(modelTrain$bestTune))
+	roc_object <- roc(modelTrain$pred$obs[selectedIndices], modelTrain$pred$X1[selectedIndices])
+  	auc_object <- auc(roc_object)
+	return(auc_object)
+}
+
+RF_Train_Best_Tune_ROC <- function(x,vector,matrix,exposure){
+ 	vector_new <- head(vector, n=x)
+	training_matrix <- top_features_Matrix(vector_new,matrix)
+
+	train_control_rf <- trainControl(method = "repeatedcv", number = 5, classProbs = TRUE, summaryFunction = twoClassSummary, verbose = FALSE,savePredictions = T)
+	train_grid_rf <- expand.grid(mtry=c(as.integer(log2((length(colnames(training_matrix))))),as.integer(sqrt((length(colnames(training_matrix)))))))
+	
+	set.seed(123)
+	modelTrain <- train(x = training_matrix, y = make.names(exposure), classwt=c(1,(length(which(exposure==0)))/(length(which(exposure==1)))), method = "rf", trControl = train_control_rf, tuneGrid = train_grid_rf, metric = "Spec")
+	
+  	selectedIndices <- (modelTrain$pred$mtry == as.integer(modelTrain$bestTune))
+	roc_object <- roc(modelTrain$pred$obs[selectedIndices], modelTrain$pred$X1[selectedIndices])
+  	
+	return(roc_object)
+}
+
+
+svmL_Train_Best_Tune <- function(x,vector,matrix,exposure){
+  	vector_new <- head(vector, n=x)
+	training_matrix <- top_features_Matrix(vector_new,matrix)
+
+  	train_control_svmL <- trainControl(method = "repeatedcv", number = 5, classProbs = TRUE, summaryFunction = twoClassSummary, verbose = FALSE,savePredictions = T)
+  	train_grid_svmL <- expand.grid(cost=c(10^(-3:2),2^(-5:6)))
+  
+	set.seed(123)
+	modelTrain <- train(x = training_matrix, y = make.names(exposure), classwt=c(1,(length(which(exposure==0)))/(length(which(exposure==1)))), method = "svmLinear2", trControl = train_control_svmL, tuneGrid = train_grid_svmL, metric = "Spec")
+
+  	selectedIndices <- modelTrain$pred$cost == as.numeric(modelTrain$bestTune)
+ 
+	roc_object <- roc(modelTrain$pred$obs[selectedIndices], modelTrain$pred$X1[selectedIndices])
+  	auc_object <- auc(roc_object)
+	return(auc_object)
+}
+
+svmL_Train_Best_Tune_ROC <- function(x,vector,matrix,exposure){
+  	vector_new <- head(vector, n=x)
+	training_matrix <- top_features_Matrix(vector_new,matrix)
+
+  	train_control_svmL <- trainControl(method = "repeatedcv", number = 5, classProbs = TRUE, summaryFunction = twoClassSummary, verbose = FALSE,savePredictions = T)
+  	train_grid_svmL <- expand.grid(cost=c(10^(-3:2),2^(-5:6)))
+  
+	set.seed(123)
+	modelTrain <- train(x = training_matrix, y = make.names(exposure), classwt=c(1,(length(which(exposure==0)))/(length(which(exposure==1)))), method = "svmLinear2", trControl = train_control_svmL, tuneGrid = train_grid_svmL, metric = "Spec")
+
+  	selectedIndices <- modelTrain$pred$cost == as.numeric(modelTrain$bestTune)
+ 
+	roc_object <- roc(modelTrain$pred$obs[selectedIndices], modelTrain$pred$X1[selectedIndices])
+  
+	return(roc_object)
+}
+
+svmR_Train_Best_Tune <- function(x,vector,matrix,exposure){
+  	vector_new <- head(vector, n=x)
+	training_matrix <- top_features_Matrix(vector_new,matrix)
+  
+	train_control_svmR <- trainControl(method = "repeatedcv", number = 5, classProbs = TRUE, summaryFunction = twoClassSummary, verbose = FALSE,savePredictions = T)
+  	train_grid_svmR <- expand.grid(sigma=c(10^(-6:1)), C=c(10^(-5:2),2^(-5:6)))
+
+	set.seed(123)
+	modelTrain <- train(x = training_matrix, y = make.names(exposure), classwt=c(1,(length(which(exposure==0)))/(length(which(exposure==1)))), method = "svmRadial", trControl = train_control_svmR, tuneGrid = train_grid_svmR, metric = "Spec")
+
+  	selectedIndices <- ((modelTrain$pred$sigma == as.numeric(modelTrain$bestTune[,1])) & (modelTrain$pred$C == as.numeric(modelTrain$bestTune[,2])))
+
+	roc_object <- roc(modelTrain$pred$obs[selectedIndices], modelTrain$pred$X1[selectedIndices])
+  	auc_object <- auc(roc_object)
+	return(auc_object)
+}
+
+svmR_Train_Best_Tune_ROC <- function(x,vector,matrix,exposure){
+  	vector_new <- head(vector, n=x)
+	training_matrix <- top_features_Matrix(vector_new,matrix)
+  
+	train_control_svmR <- trainControl(method = "repeatedcv", number = 5, classProbs = TRUE, summaryFunction = twoClassSummary, verbose = FALSE,savePredictions = T)
+  	train_grid_svmR <- expand.grid(sigma=c(10^(-6:1)), C=c(10^(-5:2),2^(-5:6)))
+
+	set.seed(123)
+	modelTrain <- train(x = training_matrix, y = make.names(exposure), classwt=c(1,(length(which(exposure==0)))/(length(which(exposure==1)))), method = "svmRadial", trControl = train_control_svmR, tuneGrid = train_grid_svmR, metric = "Spec")
+
+  	selectedIndices <- ((modelTrain$pred$sigma == as.numeric(modelTrain$bestTune[,1])) & (modelTrain$pred$C == as.numeric(modelTrain$bestTune[,2])))
+
+	roc_object <- roc(modelTrain$pred$obs[selectedIndices], modelTrain$pred$X1[selectedIndices])
+  
+	return(roc_object)
+}
+
+
+
 
 
 
