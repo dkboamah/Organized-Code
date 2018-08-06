@@ -1,0 +1,17 @@
+############################## Functions for SVM-RFE ##################################
+
+### The below functions were obtained from the following URL: https://github.com/johncolby/SVM-RFE
+### The functions were used to obtain a ranked list of CpG sites that were relevant in building an accurate Support Vector Machine model after performing Support Vector Machine - Recursive Feature Elimination. 
+
+
+
+
+
+
+
+
+
+
+
+
+
