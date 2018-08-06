@@ -16,3 +16,55 @@
 
 
 
+
+
+
+
+
+
+
+
+################################# Preparation of All (960) Data Samples #################################
+
+### Set the working directory to the directory containing the M-value table after Combat batch correction was performed (file: M_POSTcombat.rda).
+setwd("/mnt/home/david_boamah/Original_Files")
+
+load("M_POSTcombat.rda")
+head(M.combat[,1:5])
+M_combat_t <- t(M.combat)
+
+**************************************************
+load("TotalExposureData.rda")
+head(Refined_ExposureData_ForAll)
+***************************************************
+
+head(M_combat_t[,1:5])
+
+combined_matrix <- merge(Refined_ExposureData_ForAll,M_combat_t,by=0)
+rownames(combined_matrix) <- combined_matrix$Row.names
+
+All_Any_B2_Exposure <- combined_matrix[,2]
+All_Any_SSRI_Exposure <- combined_matrix[,3]
+All_Sus_B2_Exposure <- combined_matrix[,4]
+All_Sus_SSRI_Exposure <- combined_matrix[,5]
+
+All_M_values_PC <- as.matrix(combined_matrix[,6:455669])
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
+save(All_Any_B2_Exposure,All_Any_SSRI_Exposure,All_Sus_B2_Exposure,All_Sus_SSRI_Exposure,All_M_values_PC, file = "All_Cross_Info.rda")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
