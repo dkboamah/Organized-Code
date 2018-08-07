@@ -412,9 +412,69 @@ save(B2_Sustained_Training,B2_Sustained_Test,M_B2_Sustained_TrainingFeatures,M_B
 
 
 
+################################# Preparation of Test Data Samples #################################
+### This data will then be used to calculate the test performance of models when applied on a "dirty" test set (only removed data samples that lacked trimester specific data)
 
 
+## Locate directory for organized sample data
+setwd("/mnt/home/david_boamah/Data_Analysis/rda_Files")
+load("SampleLinkerData.rda")
+library(dplyr)
+head(Sample_Linker_Data)
+Sample_Linker_Data$Rownames <- rownames(Sample_Linker_Data)
+rownames(Sample_Linker_Data) <- Sample_Linker_Data$FamilyID
 
+## Locate directory for original sample data
+setwd("/mnt/home/david_boamah/New_Data_Analysis/Orignal_Files")
+Full_Exposure_Data <- read.csv("ssri_b2_2015_03_20.csv")
+rownames(Full_Exposure_Data) <- Full_Exposure_Data$FamilyID
+
+combine_1 <- merge(Full_Exposure_Data, Sample_Linker_Data, by=0)
+rownames(combine_1) <- combine_1$FamilyID.x
+
+combine_1 <- select(combine_1, -(Row.names:PV_GND))
+combine_1 <- select(combine_1, -(FamilyID.y))
+
+combine_1$ssri_sustained <- ifelse(!(combine_1$any_ssriuse==0 | combine_1$ssri_tri1==0 | combine_1$ssri_tri2==0 | combine_1$ssri_tri3==0 | combine_1$ssri_tri1==99 | combine_1$ssri_tri2==99 | combine_1$ssri_tri3==99),1,0)
+combine_1$b2_sustained <- ifelse(!(combine_1$any_b2use==0 | combine_1$b2_tri1==0 | combine_1$b2_tri2==0 | combine_1$b2_tri3==0 | combine_1$b2_tri1==99 | combine_1$b2_tri2==99 | combine_1$b2_tri3==99),1,0)
+
+rownames(combine_1) <- combine_1$Rownames
+combine_1 <- select(combine_1, -(Rownames))
+combine_1 <- select(combine_1, -(SexPred))
+
+for(i in 1:length(colnames(combine_1))){
+  combine_1[,i] <- as.factor(combine_1[,i])
+}
+
+summary(combine_1)
+
+combine_1 <- combine_1[combine_1$b2_tri1!=99,]
+combine_1 <- combine_1[combine_1$ssri_tri1!=99,]
+
+summary(combine_1)
+dim(combine_1)
+
+batch2_combine <- combine_1[combine_1$Batch==2,]
+summary(batch2_combine)
+
+setwd("/mnt/home/david_boamah/Original_Files")
+load("M_PREbatchcorr.rda")
+
+M_trans <- t(M)
+
+Combined_M_Exposure <- merge(batch2_combine,M_trans,by=0)
+rownames(Combined_M_Exposure) <- Combined_M_Exposure$Row.names
+
+Total_Exposure_Data <- Combined_M_Exposure[,1:12]
+Batch2_M_Matrix <- as.matrix(t(Combined_M_Exposure[,13:455676]))
+
+Any_Batch2_SSRI_Use <- Total_Exposure_Data[,3]
+Any_Batch2_B2_Use <- Total_Exposure_Data[,2]
+Sus_Batch2_SSRI_Use <- Total_Exposure_Data[,11]
+Sus_Batch2_B2_Use <- Total_Exposure_Data[,12]
+
+setwd("/mnt/home/david_boamah/Data_Analysis/rda_Files")
+save(Batch2_M_Matrix,Any_Batch2_SSRI_Use,Any_Batch2_B2_Use,Sus_Batch2_SSRI_Use,Sus_Batch2_B2_Use,file="Batch2_Data.rda")
 
 
 
