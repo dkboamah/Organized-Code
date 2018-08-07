@@ -1,1 +1,35 @@
 
+
+
+setwd("/mnt/home/david_boamah/Data_Analysis/Scripts_Directory/Feature_Selection")
+
+### Load code listed in "0-a). Functions for SVM-RFE"
+source("msvmRFE_linear_new.R")
+
+library(caret)
+library(e1071)
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
+load("mRMR_FS_Sus_SSRI.rda")
+load("SSRI_Sustained_Inputs.rda")
+
+set.seed(123)
+Up_Samp_DF <- upSample(x=Sus_SSRI_top_1000_M_training,y=SSRI_Sustained_Training)
+Up_Sample_DF <- cbind(Up_Samp_DF[,1001],Up_Samp_DF[1:1000])
+
+# Set up cross validation
+set.seed(123)
+nfold = 10
+nrows = nrow(Up_Sample_DF)
+folds = rep(1:nfold, len=nrows)[sample(nrows)]
+folds
+folds = lapply(1:nfold, function(x) which(folds == x))
+folds
+
+
+
+
+
+
+
+
