@@ -1,1 +1,71 @@
 
+##########################################
+## Sustained SSRI Use 
+
+library(caret)
+library(pROC)
+
+setwd("/mnt/home/david_boamah/Data_Analysis/rda_Files")
+load("Batch1_Data.rda")
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files/Feature_Selection/mRMR_SVM_RFE")
+load("Sustained_SSRI_Boruta_varSelRF_Features.rda")
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files/Feature_Selection/mRMR_SVM_RFE")
+load("mRMR_SVMRFE_Sus_SSRI.rda")
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files/Feature_Selection/mRMR_VarSel")
+load("mRMR_varSelRF_Sus_SSRI.rda")
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files/Feature_Selection/mRMR_SVM_RFE")
+load("mRMR_SVMRFE_Sus_SSRI_10folds.rda")
+
+
+
+Sus_SSRI_Batch1 <- testMatrix_Creation(matrix=Sus_SSRI_top_1000_M_training,testMatrix=Batch1_M_Matrix)
+
+x,vector,
+
+number_list <- c((1:100)*10)
+number_list <- as.list(number_list)
+number_list
+
+RF_Sus_Train_list <- sapply(X=number_list,FUN=RF_Train_Best_Tune,vector=Sus_SSRI_mRMR_VarSel_Index_noReOrder,matrix=Sus_SSRI_top_1000_M_training,exposure=SSRI_Sustained_Training,matrixSecond=Sus_SSRI_top_1000_M_training,exposureSecond=SSRI_Sustained_Training)
+svmL_Sus_Train_list <- sapply(X=number_list,FUN=svmL_Train_Best_Tune,vector=Sus_SSRI_topFeatures_mRMR_SVMRFE,matrix=Sus_SSRI_top_1000_M_training,exposure=SSRI_Sustained_Training,matrixSecond=Sus_SSRI_top_1000_M_training,exposureSecond=SSRI_Sustained_Training)
+svmR_Sus_Train_list <- sapply(X=number_list,FUN=svmR_Train_Best_Tune,vector=Sus_SSRI_topFeatures_mRMR_SVMRFE,matrix=Sus_SSRI_top_1000_M_training,exposure=SSRI_Sustained_Training,matrixSecond=Sus_SSRI_top_1000_M_training,exposureSecond=SSRI_Sustained_Training)
+
+RF_sus_SSRI_pred_Sus_SSRI <- RF_Train_Best_Tune_pred(x=1000,vector=Sus_SSRI_mRMR_VarSel_Index_noReOrder,matrix=Sus_SSRI_Batch1,exposure=Sus_Batch1_SSRI_Use,matrixSecond=Sus_SSRI_top_1000_M_training,exposureSecond=SSRI_Sustained_Training)
+RF_sus_SSRI_pred_Sus_B2 <- RF_Train_Best_Tune_pred(x=1000,vector=Sus_SSRI_mRMR_VarSel_Index_noReOrder,matrix=Sus_SSRI_Batch1,exposure=Sus_Batch1_B2_Use,matrixSecond=Sus_SSRI_top_1000_M_training,exposureSecond=SSRI_Sustained_Training)
+RF_sus_SSRI_pred_Any_B2 <- RF_Train_Best_Tune_pred(x=1000,vector=Sus_SSRI_mRMR_VarSel_Index_noReOrder,matrix=Sus_SSRI_Batch1,exposure=Any_Batch1_B2_Use,matrixSecond=Sus_SSRI_top_1000_M_training,exposureSecond=SSRI_Sustained_Training)
+
+svmL_sus_SSRI_pred_Sus_SSRI <- svmL_Train_Best_Tune_pred(x=1000,vector=Sus_SSRI_topFeatures_mRMR_SVMRFE,matrix=Sus_SSRI_Batch1,exposure=Sus_Batch1_SSRI_Use,matrixSecond=Sus_SSRI_top_1000_M_training,exposureSecond=SSRI_Sustained_Training)
+svmL_sus_SSRI_pred_Sus_B2 <- svmL_Train_Best_Tune_pred(x=1000,vector=Sus_SSRI_topFeatures_mRMR_SVMRFE,matrix=Sus_SSRI_Batch1,exposure=Sus_Batch1_B2_Use,matrixSecond=Sus_SSRI_top_1000_M_training,exposureSecond=SSRI_Sustained_Training)
+svmL_sus_SSRI_pred_Any_B2 <- svmL_Train_Best_Tune_pred(x=1000,vector=Sus_SSRI_topFeatures_mRMR_SVMRFE,matrix=Sus_SSRI_Batch1,exposure=Any_Batch1_B2_Use,matrixSecond=Sus_SSRI_top_1000_M_training,exposureSecond=SSRI_Sustained_Training)
+
+svmR_sus_SSRI_pred_Sus_SSRI <- svmR_Train_Best_Tune_pred(x=1000,vector=Sus_SSRI_topFeatures_mRMR_SVMRFE,matrix=Sus_SSRI_Batch1,exposure=Sus_Batch1_SSRI_Use,matrixSecond=Sus_SSRI_top_1000_M_training,exposureSecond=SSRI_Sustained_Training)
+svmR_sus_SSRI_pred_Sus_B2 <- svmR_Train_Best_Tune_pred(x=1000,vector=Sus_SSRI_topFeatures_mRMR_SVMRFE,matrix=Sus_SSRI_Batch1,exposure=Sus_Batch1_B2_Use,matrixSecond=Sus_SSRI_top_1000_M_training,exposureSecond=SSRI_Sustained_Training)
+svmR_sus_SSRI_pred_Any_B2 <- svmR_Train_Best_Tune_pred(x=1000,vector=Sus_SSRI_topFeatures_mRMR_SVMRFE,matrix=Sus_SSRI_Batch1,exposure=Any_Batch1_B2_Use,matrixSecond=Sus_SSRI_top_1000_M_training,exposureSecond=SSRI_Sustained_Training)
+
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/Tables")
+write.csv(RF_sus_SSRI_pred_Sus_SSRI,file="RF_sus_SSRI_pred_Sus_SSRI.csv")
+write.csv(RF_sus_SSRI_pred_Sus_B2,file="RF_sus_SSRI_pred_Sus_B2.csv")
+write.csv(RF_sus_SSRI_pred_Any_B2,file="RF_sus_SSRI_pred_Any_B2.csv")
+
+write.csv(svmL_sus_SSRI_pred_Sus_SSRI,file="svmL_sus_SSRI_pred_Sus_SSRI.csv")
+write.csv(svmL_sus_SSRI_pred_Sus_B2,file="svmL_sus_SSRI_pred_Sus_B2.csv")
+write.csv(svmL_sus_SSRI_pred_Any_B2,file="svmL_sus_SSRI_pred_Any_B2.csv")
+
+write.csv(svmR_sus_SSRI_pred_Sus_SSRI,file="svmR_sus_SSRI_pred_Sus_SSRI.csv")
+write.csv(svmR_sus_SSRI_pred_Sus_B2,file="svmR_sus_SSRI_pred_Sus_B2.csv")
+write.csv(svmR_sus_SSRI_pred_Any_B2,file="svmR_sus_SSRI_pred_Any_B2.csv")
+
+
+
+
+
+
+
+
+
+
+
+
