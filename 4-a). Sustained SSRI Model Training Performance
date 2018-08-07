@@ -58,6 +58,107 @@ write.csv(svmR_sus_SSRI_pred_Sus_SSRI,file="svmR_sus_SSRI_pred_Sus_SSRI.csv")
 write.csv(svmR_sus_SSRI_pred_Sus_B2,file="svmR_sus_SSRI_pred_Sus_B2.csv")
 write.csv(svmR_sus_SSRI_pred_Any_B2,file="svmR_sus_SSRI_pred_Any_B2.csv")
 
+#####################################
+## Sustained SSRI
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/Scripts_Directory/TrainingModels")
+source("Training_ROC_Objects.R")
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
+load("topFeatures_Sus_SSRI_5CV.rda")
+load("SSRI_Sustained_Inputs.rda")
+load("Filter_M_SSRI_Sustained.rda")
+load("varSelRF_Sus_SSRI_object.rda")
+
+library(caret)
+library(pROC)
+
+for (i in 1:length(rownames(Ordered_SSRI_Sus_Importance))){
+  Ordered_SSRI_Sus_Importance$Index[i] <- which(colnames(SSRI_Sustained_TrainingFeatures_Filter)==Ordered_SSRI_Sus_Importance$Names[i])
+}
+
+OG_Train_RF_9_Best <- RF_Train_Best(x=9,vector=Ordered_SSRI_Sus_Importance[,3],matrix=SSRI_Sustained_TrainingFeatures_Filter,exposure=SSRI_Sustained_Training)
+#ROC: 0.9224577; Sens: 0.9941748; Spec: 0.15; ROCsd: 0.07811755; Sens_sd: 0.008683759; Spec_sd: 0.2236068; 
+
+OG_RF_BestTune <- RF_Train_Best_Tune(x=9,vector=Ordered_SSRI_Sus_Importance[,3],matrix=SSRI_Sustained_TrainingFeatures_Filter,exposure=SSRI_Sustained_Training)
+
+OG_Train_RF_9_ROC <- RF_Train_ROC(x=9,vector=Ordered_SSRI_Sus_Importance[,3],matrix=SSRI_Sustained_TrainingFeatures_Filter,exposure=SSRI_Sustained_Training)
+ROC: 0.9606
+
+Random_Train_RF_ROC_list <- list()
+Random_Train_RF_auc_list <- list()
+
+set.seed(123)
+for(i in 1:1000){
+	Random_Train_RF_ROC_list[i] <- list(Random_RF_Train_ROC(x=9,matrix=M_SSRI_Sustained_TrainingFeatures,exposure=SSRI_Sustained_Training))
+}
+#Mean AUROC: 0.5534 (Range: 0.4194–0.7546)
+
+Random_Train_RF_auc_list <- sapply(X=Random_Train_RF_ROC_list,FUN=auc)
+
+OG_Train_svmL_12_Best <- svmL_Train_best(x=12,vector=top.features$FeatureID,matrix=SSRI_Sustained_TrainingFeatures_Filter,exposure=SSRI_Sustained_Training)
+#ROC: 0.9381877; Sens: 0.992233; Spec: 0.4833333; ROCsd: 0.07085088; Sens_sd: 0.008122913; Spec_sd: 0.3836955
+
+OG_svmL_BestTune <- svmL_Train_best_tune(x=12,vector=top.features$FeatureID,matrix=SSRI_Sustained_TrainingFeatures_Filter,exposure=SSRI_Sustained_Training)
+
+OG_Train_svmL_12_ROC <- svmL_Train_ROC(x=12,vector=top.features$FeatureID,matrix=SSRI_Sustained_TrainingFeatures_Filter,exposure=SSRI_Sustained_Training)
+#AUROC: 0.8975
+
+Random_Train_svmL_ROC_list <- list()
+Random_Train_svmL_auc_list <- list()
+
+set.seed(123)
+for(i in 1:1000){
+	Random_Train_svmL_ROC_list[i] <- list(Random_svmL_Train_ROC(x=12,matrix=M_SSRI_Sustained_TrainingFeatures,exposure=SSRI_Sustained_Training))
+}
+#Mean AUROC: 0.5489 (Range: 0.4113 – 0.7106)
+
+Random_Train_svmL_auc_list <- sapply(X=Random_Train_svmL_ROC_list,FUN=auc)
+
+OG_Train_svmR_12_Best <- svmR_Train_best(x=12,vector=top.features$FeatureID,matrix=SSRI_Sustained_TrainingFeatures_Filter,exposure=SSRI_Sustained_Training)
+#ROC: 0.9189414 Sens: 0.9980769 Spec: 0.3666667 ROCsd: 0.1242691 Sens_sd: 0.004300131 Spec_sd:0.2173067
+
+OG_svmR_BestTune <- svmR_Train_best_tune(x=12,vector=top.features$FeatureID,matrix=SSRI_Sustained_TrainingFeatures_Filter,exposure=SSRI_Sustained_Training)
+
+OG_Train_svmR_12_ROC <- svmR_Train_ROC(x=12,vector=top.features$FeatureID,matrix=SSRI_Sustained_TrainingFeatures_Filter,exposure=SSRI_Sustained_Training)
+#AUROC: 0.8868
+
+Random_Train_svmR_ROC_list <- list()
+Random_Train_svmR_auc_list <- list()
+
+set.seed(123)
+for(i in 1:1000){
+	Random_Train_svmR_ROC_list[i] <- list(Random_svmR_Train_ROC(x=12,matrix=M_SSRI_Sustained_TrainingFeatures,exposure=SSRI_Sustained_Training))
+}
+#Mean AUROC: 0.5557 (Range: 0.3959 – 0.7912)
+
+Random_Train_svmR_auc_list <- sapply(X=Random_Train_svmR_ROC_list,FUN=auc)
+
+#Creat ROC Curve Plots
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/Results_Graphics/ROC_Curves_1")
+
+pdf("Sus_SSRI_RF_Random_ROC.pdf", 7, 5)
+par(pty="s")
+plot.roc(OG_Train_RF_9_ROC,col="black",lwd=2)
+set.seed(123)
+replicate(1000,Random_RF_Plot_Train_ROC(x=9,matrix=M_SSRI_Sustained_TrainingFeatures,exposure=SSRI_Sustained_Training))
+dev.off()
+
+pdf("Sus_SSRI_svmL_Random_ROC.pdf", 7, 5)
+par(pty="s")
+plot.roc(OG_Train_svmL_12_ROC,col="black",lwd=2)
+set.seed(123)
+replicate(1000,Random_svmL_Plot_Train_ROC(x=12,matrix=M_SSRI_Sustained_TrainingFeatures,exposure=SSRI_Sustained_Training))
+dev.off()
+
+pdf("Sus_SSRI_svmR_Random_ROC.pdf", 7, 5)
+par(pty="s")
+plot.roc(OG_Train_svmR_12_ROC,col="black",lwd=2)
+set.seed(123)
+replicate(1000,Random_svmR_Plot_Train_ROC(x=12,matrix=M_SSRI_Sustained_TrainingFeatures,exposure=SSRI_Sustained_Training))
+dev.off()
+
 
 
 
