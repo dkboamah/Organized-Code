@@ -1,5 +1,6 @@
+####################### Performing Support Vector Machine - Recursive Feature Elimination ######################################
 
-
+### Performing wrapper feature selection algorithm that will then serve as the input features of SVM models with either a linear or radial basis function kernel function. 
 
 setwd("/mnt/home/david_boamah/Data_Analysis/Scripts_Directory/Feature_Selection")
 
@@ -22,14 +23,38 @@ set.seed(123)
 nfold = 10
 nrows = nrow(Up_Sample_DF)
 folds = rep(1:nfold, len=nrows)[sample(nrows)]
-folds
 folds = lapply(1:nfold, function(x) which(folds == x))
-folds
+
+# Perform feature ranking on all training sets
+results = lapply(folds, svmRFE.wrap, Up_Sample_DF, k=10, halve.above=501)
+length(results)
+results
+
+# Obtain top features across ALL folds
+# Compile feature rankings across multiple folds
+top.features = WriteFeatures(results, Up_Sample_DF, save=F)
+head(top.features)
+
+Sus_SSRI_topFeatures_mRMR_SVMRFE <- top.features$FeatureID  
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files/Feature_Selection/mRMR_SVM_RFE")
+
+save(Sus_SSRI_topFeatures_mRMR_SVMRFE,Sus_SSRI_top_1000_M_training,SSRI_Sustained_Training,Sus_SSRI_top_1000_M_test,SSRI_Sustained_Test, file = "mRMR_SVMRFE_Sus_SSRI.rda")
 
 
+####################### Performing Variable Selection using Random Forests ######################################
 
+### Performing wrapper feature selection algorithm that will then serve as the input features of random forest models
 
+library(caret)
+library(varSelRF)
+library(dplyr)
 
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
+load("mRMR_FS_Sus_SSRI.rda")
+load("SSRI_Sustained_Inputs.rda")
 
+Sus_SSRI_mRMR_VarSel_Index_noReOrder <- varSelCheck_NoReOrder(matrix=Sus_SSRI_top_1000_M_training,exposure=SSRI_Sustained_Training)
 
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files/Feature_Selection/mRMR_VarSel")
+save(Sus_SSRI_mRMR_VarSel_Index_noReOrder,Sus_SSRI_top_1000_M_training,SSRI_Sustained_Training,Sus_SSRI_top_1000_M_test,SSRI_Sustained_Test, file = "mRMR_varSelRF_Sus_SSRI.rda")
 
