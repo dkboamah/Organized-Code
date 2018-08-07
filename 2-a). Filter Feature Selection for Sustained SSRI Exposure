@@ -1,6 +1,50 @@
+### Perform filter feature selection using mRMR filter selection. Process: a). Upsample data. b). Find the top 10% features using unadjusted limma analysis c). Perform mRMR to find the top 1000 features 
 
+library(caret)
+library(mRMRe)
+library(dplyr)
+library(limma)
 
+## Load Sustained SSRI data (M-values and vector of exposure)
 
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
+load("SSRI_Sustained_Inputs.rda")
+
+set.seed(123)
+Up_Samp_DF <- upSample(x=M_SSRI_Sustained_TrainingFeatures,y=SSRI_Sustained_Training)
+M_Matrix_Up <- as.matrix(Up_Samp_DF[,1:455664])
+Exposure_Up <- as.vector(Up_Samp_DF[,455665])
+
+### mRMR  Function does not work with greater than 46000 features... Reduce number of features
+
+design_mat <- model.matrix(~Exposure_Up)
+dim(design_mat)
+head(design_mat)
+
+M_Matrix_Up_t <- t(M_Matrix_Up)
+
+fit <- lmFit(M_Matrix_Up_t,design_mat)
+fit_eBayes <- eBayes(fit, robust=TRUE)
+
+fit_table <- topTable(fit_eBayes,coef=2, sort.by = "P",number=45566)
+
+limma_index <- vector()
+
+for (i in 1:length(rownames(fit_table))){
+limma_index[i] <- which(rownames(fit_table)[i] == colnames(M_SSRI_Sustained_TrainingFeatures))
+}
+
+Sus_SSRI_limma_CpG <- top_features_Matrix(vector=limma_index,matrix=M_SSRI_Sustained_TrainingFeatures)
+Sus_SSRI_limma_CpG_test <- top_features_Matrix(vector=limma_index,matrix=M_SSRI_Sustained_TestFeatures)
+
+load("mRMR_FS_Sus_SSRI.rda")
+Sus_SSRI_1000_topFeatures <- Sus_SSRI_1000_topFeatures - 1
+Sus_SSRI_500_topFeatures <- Sus_SSRI_500_topFeatures - 1
+
+Sus_SSRI_top_1000_M_training <- top_features_Matrix(vector=Sus_SSRI_1000_topFeatures,matrix=Sus_SSRI_limma_CpG)
+Sus_SSRI_top_1000_M_test <- top_features_Matrix(vector=Sus_SSRI_1000_topFeatures,matrix=Sus_SSRI_limma_CpG_test)
+
+save(Sus_SSRI_500_topFeatures,Sus_SSRI_1000_topFeatures,Sus_SSRI_top_1000_M_training,Sus_SSRI_top_1000_M_test,file = "mRMR_FS_Sus_SSRI.rda")
 
 
 
