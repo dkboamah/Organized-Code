@@ -1,4 +1,87 @@
 
+#############################
+# SampleLinker.R
+##Part 1: Create linker file. Includes sample's sex and batch number
+
+setwd("/mnt/home/david_boamah/Data_Analysis/rda_Files")
+load("SampleLinkerData.rda")
+library(dplyr)
+head(Sample_Linker_Data)
+Sample_Linker_Data$Rownames <- rownames(Sample_Linker_Data)
+rownames(Sample_Linker_Data) <- Sample_Linker_Data$FamilyID
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/Orignal_Files")
+Full_Exposure_Data <- read.csv("ssri_b2_2015_03_20.csv")
+rownames(Full_Exposure_Data) <- Full_Exposure_Data$FamilyID
+
+combine_1 <- merge(Full_Exposure_Data, Sample_Linker_Data, by=0)
+rownames(combine_1) <- combine_1$FamilyID.x
+combine_1 <- select(combine_1, -(Row.names:PV_GND))
+combine_1 <- select(combine_1, -(FamilyID.y))
+
+
+GEWIS1_DF <- read.table("/mnt/datasets/SEED_genetics/MD_GEWIS_Waves1-3/GWASfiles/ImputedDataset/GEWIS1.sample",header=T)
+GEWIS1_DF <- tail(GEWIS1_DF,n=((length(rownames(GEWIS1_DF))-1)))
+
+GEWIS2_DF <- read.table("/mnt/datasets/SEED_genetics/MD_GEWIS_Waves1-3/GWASfiles/ImputedDataset/GEWIS2.sample",header=TRUE)
+GEWIS2_DF <- tail(GEWIS2_DF,n=((length(rownames(GEWIS2_DF))-1)))
+
+GIRLS_DF <- read.table("/mnt/datasets/SEED_genetics/MD_GEWIS_Waves1-3/GWASfiles/ImputedDataset/GIRLS.sample",header=T)
+GIRLS_DF <- tail(GIRLS_DF,n=((length(rownames(GIRLS_DF))-1)))
+
+FC_Pheno_DF <- rbind(GEWIS1_DF,GEWIS2_DF)
+FC_Pheno_DF <- rbind(FC_Pheno_DF,GIRLS_DF)
+rownames(FC_Pheno_DF) <- FC_Pheno_DF$ID_1
+FC_Pheno_DF <- select(FC_Pheno_DF,(7))
+head(FC_Pheno_DF)
+
+
+CaseControl_Merge <- merge(combine_1,FC_Pheno_DF,by=0,all.x=TRUE)
+dim(CaseControl_Merge)
+summary(CaseControl_Merge)
+
+#2 is "CASE"; 1 is "POP"
+##439 Cases, with 504 Controls;27 missing
+
+CaseControl_Merge$any_b2use <- factor(CaseControl_Merge$any_b2use)
+CaseControl_Merge$any_ssriuse <- factor(CaseControl_Merge$any_ssriuse)
+CaseControl_Merge$b2_tri1 <- factor(CaseControl_Merge$b2_tri1)
+CaseControl_Merge$ssri_tri1 <- factor(CaseControl_Merge$ssri_tri1)
+CaseControl_Merge$b2_tri2 <- factor(CaseControl_Merge$b2_tri2)
+CaseControl_Merge$ssri_tri2 <- factor(CaseControl_Merge$ssri_tri2)
+CaseControl_Merge$b2_tri3 <- factor(CaseControl_Merge$b2_tri3)
+CaseControl_Merge$ssri_tri3 <- factor(CaseControl_Merge$ssri_tri3)
+
+
+split_ssri <- split(CaseControl_Merge, f= CaseControl_Merge$any_ssriuse)
+
+split_b2 <- split(CaseControl_Merge, f= CaseControl_Merge$any_b2use)
+
+split_ssri_unexposed <- split_ssri[[1]]
+split_ssri_exposed <- split_ssri[[2]]
+
+split_split_ssriunexposed <- split(split_ssri_unexposed, f= split_ssri_unexposed$Batch)
+split_split_ssriexposed <- split(split_ssri_exposed, f= split_ssri_exposed$Batch)
+
+one_ssri_unexposed <- split_split_ssriunexposed[[1]]
+two_ssri_unexposed <- split_split_ssriunexposed[[2]]
+
+one_ssri_exposed <- split_split_ssriexposed[[1]]
+two_ssri_exposed <- split_split_ssriexposed[[2]]
+
+
+
+split_b2_unexposed <- split_b2[[1]]
+split_b2_exposed <- split_b2[[2]]
+
+split_split_b2unexposed <- split(split_b2_unexposed, f= split_b2_unexposed$Batch)
+split_split_b2exposed <- split(split_b2_exposed, f= split_b2_exposed$Batch)
+
+one_b2_unexposed <- split_split_b2unexposed[[1]]
+two_b2_unexposed <- split_split_b2unexposed[[2]]
+
+one_b2_exposed <- split_split_b2exposed[[1]]
+two_b2_exposed <- split_split_b2exposed[[2]]
 
 
 
@@ -8,7 +91,321 @@
 
 
 
+split_DF <- split(CaseControl_Merge, f = CaseControl_Merge$Batch)
 
+
+summary(split_DF[[1]])
+summary(split_DF[[2]])
+
+Complete_Exposure_Data <- combine_1
+rownames(Complete_Exposure_Data) <- Complete_Exposure_Data$Rownames
+Complete_Exposure_Data <- select(Complete_Exposure_Data,-(Rownames))
+
+
+length(which(Complete_Exposure_Data$any_b2use==1&Complete_Exposure_Data$any_ssriuse==1))
+##8 peeps with both ssri and b2 usage
+## 6 from batch 1; 2 from batch 2
+###[1]  61 220 270 329 510 619 884 962
+
+Complete_Exposure_Data$Rownames <- rownames(Complete_Exposure_Data)
+
+Complete_Exposure_Data_noDUBS <- filter(Complete_Exposure_Data, !(any_b2use==1 & any_ssriuse==1))
+##Gives 962 peeps
+
+Complete_Exposure_Data_noDUBS$any_b2use <- factor(Complete_Exposure_Data_noDUBS$any_b2use, levels=c(0,1))
+Complete_Exposure_Data_noDUBS$any_ssriuse <- factor(Complete_Exposure_Data_noDUBS$any_ssriuse, levels=c(0,1))
+Complete_Exposure_Data_noDUBS$b2_tri1 <- factor(Complete_Exposure_Data_noDUBS$b2_tri1, levels=c(0,1))
+Complete_Exposure_Data_noDUBS$ssri_tri1 <- factor(Complete_Exposure_Data_noDUBS$ssri_tri1, levels=c(0,1))
+Complete_Exposure_Data_noDUBS$b2_tri2 <- factor(Complete_Exposure_Data_noDUBS$b2_tri2, levels=c(0,1))
+Complete_Exposure_Data_noDUBS$ssri_tri2 <- factor(Complete_Exposure_Data_noDUBS$ssri_tri2, levels=c(0,1))
+Complete_Exposure_Data_noDUBS$b2_tri3 <- factor(Complete_Exposure_Data_noDUBS$b2_tri3, levels=c(0,1))
+Complete_Exposure_Data_noDUBS$ssri_tri3 <- factor(Complete_Exposure_Data_noDUBS$ssri_tri3, levels=c(0,1))
+
+
+
+summary(Complete_Exposure_Data_noDUBS)
+##72 total peeps with B2 use; 61 peeps with SSRI use (any)
+##15 peeps without trimester specific b2 use; 20 peeps without trimester specific ssri use
+##600 Batch 1, 362 Batch 2
+##639 Male, 323 Female
+
+Training_Unexposed <- filter(Complete_Exposure_Data_noDUBS, !(any_b2use==1 | any_ssriuse==1 | Batch==2))
+##Gives 516 peeps
+##Males=327; Females=189
+
+summary(Training_Unexposed)
+
+Test_Unexposed <- filter(Complete_Exposure_Data_noDUBS, !(any_b2use==1 | any_ssriuse==1 | Batch==1))
+dim(Test_Unexposed)
+###Gives 313 peeps
+##Males=221;Females=92 
+
+summary(Test_Unexposed)
+
+SSRI_Training_AnyUse_Exposed <- filter(Complete_Exposure_Data_noDUBS, !(any_ssriuse==0 | Batch==2))
+summary(SSRI_Training_AnyUse_Exposed)
+
+###41 peeps
+##Male:26;Female:25
+##T1:21;T2:22;T3:23
+
+SSRI_Training_SustainedUse_Exposed <- filter(Complete_Exposure_Data_noDUBS, !(any_ssriuse==0 | ssri_tri1==0 | ssri_tri2==0 | ssri_tri3==0| Batch==2))
+summary(SSRI_Training_SustainedUse_Exposed)
+
+###18 peeps
+##Male: 10;Female 8
+
+SSRI_Test_AnyUse_Exposed <- filter(Complete_Exposure_Data_noDUBS, !(any_ssriuse==0 | Batch==1))
+summary(SSRI_Test_AnyUse_Exposed)
+
+###20 peeps
+##Male:13;Female:7
+##T1:13;T2:12;T3:11
+
+SSRI_Test_SustainedUse_Exposed <- filter(Complete_Exposure_Data_noDUBS, !(any_ssriuse==0 | ssri_tri1==0 | ssri_tri2==0 | ssri_tri3==0| Batch==1))
+summary(SSRI_Test_SustainedUse_Exposed)
+
+###9 peeps
+##Male:6;Female:3
+
+SSRI_Combined_Training_AnyUse <- rbind(Training_Unexposed,SSRI_Training_AnyUse_Exposed)
+rownames(SSRI_Combined_Training_AnyUse) <- SSRI_Combined_Training_AnyUse$Rownames
+SSRI_Combined_Training_AnyUse <- select(SSRI_Combined_Training_AnyUse,-(Rownames))
+summary(SSRI_Combined_Training_AnyUse)
+##557 peeps
+##Male: 353; Female:204
+##41 exposed
+##T1: 21; T2:22; T3:23; NA:16
+
+SSRI_Combined_Training_AnyUse$SSRI_Any <- with(SSRI_Combined_Training_AnyUse, ifelse(any_ssriuse==1, 1, 0))
+SSRI_Combined_Training_AnyUse$SSRI_Any <- factor(SSRI_Combined_Training_AnyUse$SSRI_Any,levels=c(0,1))
+SSRI_Combined_Training_AnyUse <- select(SSRI_Combined_Training_AnyUse,SSRI_Any)
+summary(SSRI_Combined_Training_AnyUse)
+
+head(SSRI_Combined_Training_AnyUse)
+
+###############
+SSRI_Combined_Test_AnyUse <- rbind(Test_Unexposed,SSRI_Test_AnyUse_Exposed)
+rownames(SSRI_Combined_Test_AnyUse) <- SSRI_Combined_Test_AnyUse$Rownames
+SSRI_Combined_Test_AnyUse <- select(SSRI_Combined_Test_AnyUse,-(Rownames))
+summary(SSRI_Combined_Test_AnyUse)
+##333 peeps
+##Male 234; Female:99
+###20 exposed
+##T1:13; T2:12: T3:11; Missing:4
+
+
+SSRI_Combined_Test_AnyUse$SSRI_Any <- with(SSRI_Combined_Test_AnyUse, ifelse(any_ssriuse==1, 1, 0))
+SSRI_Combined_Test_AnyUse$SSRI_Any <- factor(SSRI_Combined_Test_AnyUse$SSRI_Any,levels=c(0,1))
+SSRI_Combined_Test_AnyUse <- select(SSRI_Combined_Test_AnyUse,SSRI_Any)
+summary(SSRI_Combined_Test_AnyUse)
+
+
+
+###############
+SSRI_Combined_Training_SustainedUse <- rbind(Training_Unexposed,SSRI_Training_SustainedUse_Exposed)
+rownames(SSRI_Combined_Training_SustainedUse) <- SSRI_Combined_Training_SustainedUse$Rownames
+SSRI_Combined_Training_SustainedUse <- select(SSRI_Combined_Training_SustainedUse,-(Rownames))
+summary(SSRI_Combined_Training_SustainedUse)
+##534 peeps
+##Male: 337, Female:197
+##18 sustained
+
+SSRI_Combined_Training_SustainedUse$SSRI_Sustain <- with(SSRI_Combined_Training_SustainedUse, ifelse(any_ssriuse==1, 1, 0))
+SSRI_Combined_Training_SustainedUse$SSRI_Sustain <- factor(SSRI_Combined_Training_SustainedUse$SSRI_Sustain,levels=c(0,1))
+SSRI_Combined_Training_SustainedUse <- select(SSRI_Combined_Training_SustainedUse,SSRI_Sustain)
+summary(SSRI_Combined_Training_SustainedUse)
+
+
+###############
+SSRI_Combined_Test_SustainedUse <- rbind(Test_Unexposed,SSRI_Test_SustainedUse_Exposed)
+rownames(SSRI_Combined_Test_SustainedUse) <- SSRI_Combined_Test_SustainedUse$Rownames
+SSRI_Combined_Test_SustainedUse <- select(SSRI_Combined_Test_SustainedUse,-(Rownames))
+summary(SSRI_Combined_Test_SustainedUse)
+##322 peeps
+##Male:227;Female:95
+##9 sustained
+
+SSRI_Combined_Test_SustainedUse$SSRI_Sustain <- with(SSRI_Combined_Test_SustainedUse, ifelse(any_ssriuse==1, 1, 0))
+SSRI_Combined_Test_SustainedUse$SSRI_Sustain <- factor(SSRI_Combined_Test_SustainedUse$SSRI_Sustain,levels=c(0,1))
+SSRI_Combined_Test_SustainedUse <- select(SSRI_Combined_Test_SustainedUse,SSRI_Sustain)
+summary(SSRI_Combined_Test_SustainedUse)
+
+
+
+
+#########################################################
+B2_Training_AnyUse_Exposed <- filter(Complete_Exposure_Data_noDUBS, !(any_b2use==0 | Batch==2))
+summary(B2_Training_AnyUse_Exposed)
+
+###41 peeps
+##Male:30;Female:13
+##T1:13;T2:17;T3:28; Missing:10
+
+B2_Training_SustainedUse_Exposed <- filter(Complete_Exposure_Data_noDUBS, !(any_b2use==0 | b2_tri1==0 | b2_tri2==0 | b2_tri3==0| Batch==2))
+summary(B2_Training_SustainedUse_Exposed)
+
+###10 peeps
+##Male: 6;Female 4
+
+B2_Test_AnyUse_Exposed <- filter(Complete_Exposure_Data_noDUBS, !(any_b2use==0 | Batch==1))
+summary(B2_Test_AnyUse_Exposed)
+
+###29 peeps
+##Male:22;Female:7
+##T1:11;T2:15;T3:22; Missing:5
+
+B2_Test_SustainedUse_Exposed <- filter(Complete_Exposure_Data_noDUBS, !(any_b2use==0 | b2_tri1==0 | b2_tri2==0 | b2_tri3==0| Batch==1))
+summary(B2_Test_SustainedUse_Exposed)
+
+###10 peeps
+##Male:8;Female:2
+
+
+###############
+B2_Combined_Training_AnyUse <- rbind(Training_Unexposed,B2_Training_AnyUse_Exposed)
+rownames(B2_Combined_Training_AnyUse) <- B2_Combined_Training_AnyUse$Rownames
+B2_Combined_Training_AnyUse <- select(B2_Combined_Training_AnyUse,-(Rownames))
+summary(B2_Combined_Training_AnyUse)
+##559 peeps
+##Male: 357; Female:202
+## 43 any use
+
+B2_Combined_Training_AnyUse$B2_Any <- with(B2_Combined_Training_AnyUse, ifelse(any_b2use==1, 1, 0))
+B2_Combined_Training_AnyUse$B2_Any <- factor(B2_Combined_Training_AnyUse$B2_Any,levels=c(0,1))
+B2_Combined_Training_AnyUse <- select(B2_Combined_Training_AnyUse,B2_Any)
+summary(B2_Combined_Training_AnyUse)
+
+
+###############
+B2_Combined_Test_AnyUse <- rbind(Test_Unexposed,B2_Test_AnyUse_Exposed)
+rownames(B2_Combined_Test_AnyUse) <- B2_Combined_Test_AnyUse$Rownames
+B2_Combined_Test_AnyUse <- select(B2_Combined_Test_AnyUse, -(Rownames))
+summary(B2_Combined_Test_AnyUse)
+##342 peeps
+##Male 243; Female:99
+##29 any use
+
+B2_Combined_Test_AnyUse$B2_Any <- with(B2_Combined_Test_AnyUse, ifelse(any_b2use==1, 1, 0))
+B2_Combined_Test_AnyUse$B2_Any <- factor(B2_Combined_Test_AnyUse$B2_Any,levels=c(0,1))
+B2_Combined_Test_AnyUse <- select(B2_Combined_Test_AnyUse,B2_Any)
+summary(B2_Combined_Test_AnyUse)
+
+
+###############
+B2_Combined_Training_SustainedUse <- rbind(Training_Unexposed,B2_Training_SustainedUse_Exposed)
+rownames(B2_Combined_Training_SustainedUse) <- B2_Combined_Training_SustainedUse$Rownames
+B2_Combined_Training_SustainedUse <- select(B2_Combined_Training_SustainedUse,-(Rownames))
+summary(B2_Combined_Training_SustainedUse)
+##526 peeps
+##Male: 333, Female:193
+##Use: 10
+
+B2_Combined_Training_SustainedUse$B2_Sustain <- with(B2_Combined_Training_SustainedUse, ifelse(any_b2use==1, 1, 0))
+B2_Combined_Training_SustainedUse$B2_Sustain <- factor(B2_Combined_Training_SustainedUse$B2_Sustain,levels=c(0,1))
+B2_Combined_Training_SustainedUse <- select(B2_Combined_Training_SustainedUse,B2_Sustain)
+summary(B2_Combined_Training_SustainedUse)
+
+
+
+################
+B2_Combined_Test_SustainedUse <- rbind(Test_Unexposed,B2_Test_SustainedUse_Exposed)
+rownames(B2_Combined_Test_SustainedUse) <- B2_Combined_Test_SustainedUse$Rownames
+B2_Combined_Test_SustainedUse <- select(B2_Combined_Test_SustainedUse,-(Rownames))
+summary(B2_Combined_Test_SustainedUse)
+##323 peeps
+##Male:229;Female:94
+##10 peeps with sustained b2 use
+
+B2_Combined_Test_SustainedUse$B2_Sustain <- with(B2_Combined_Test_SustainedUse, ifelse(any_b2use==1, 1, 0))
+B2_Combined_Test_SustainedUse$B2_Sustain <- factor(B2_Combined_Test_SustainedUse$B2_Sustain,levels=c(0,1))
+B2_Combined_Test_SustainedUse <- select(B2_Combined_Test_SustainedUse,B2_Sustain)
+summary(B2_Combined_Test_SustainedUse)
+
+################################################
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
+
+save(Training_Unexposed,Test_Unexposed,SSRI_Training_AnyUse_Exposed,SSRI_Test_AnyUse_Exposed,SSRI_Training_SustainedUse_Exposed,SSRI_Test_SustainedUse_Exposed,B2_Training_AnyUse_Exposed,B2_Test_AnyUse_Exposed,B2_Training_SustainedUse_Exposed,B2_Test_SustainedUse_Exposed, file = "Individual_Data_Sets_onlyExposure.rda")
+
+save(SSRI_Combined_Test_SustainedUse,SSRI_Combined_Training_SustainedUse, file = "SSRI_SustainedUse_onlyExposure.rda")
+
+save(B2_Combined_Test_SustainedUse,B2_Combined_Training_SustainedUse, file = "B2_SustainedUse_onlyExposure.rda")
+
+save(SSRI_Combined_Test_AnyUse,SSRI_Combined_Training_AnyUse, file = "SSRI_AnyUse_onlyExposure.rda")
+
+save(B2_Combined_Test_AnyUse,B2_Combined_Training_AnyUse, file = "B2_AnyUse_onlyExposure.rda")
+
+
+
+##Obtain_SSRI_Sustained_Any_Values.R
+
+setwd("/mnt/home/david_boamah/Original_Files")
+load("M_PREbatchcorr.rda")
+library(caret)
+library(dplyr)
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
+load("SSRI_SustainedUse_onlyExposure.rda")
+
+M_PRE_DF_transposed <- t(as.data.frame(M))
+
+Combine_M_SSRI_Sustained_Training <- merge(SSRI_Combined_Training_SustainedUse, M_PRE_DF_transposed, by = 0)
+rownames(Combine_M_SSRI_Sustained_Training) <- Combine_M_SSRI_Sustained_Training$Row.names
+Combine_M_SSRI_Sustained_Training <- select(Combine_M_SSRI_Sustained_Training, -(Row.names))
+
+
+Combine_M_SSRI_Sustained_Test <- merge(SSRI_Combined_Test_SustainedUse, M_PRE_DF_transposed, by = 0)
+rownames(Combine_M_SSRI_Sustained_Test) <- Combine_M_SSRI_Sustained_Test$Row.names
+Combine_M_SSRI_Sustained_Test <- select(Combine_M_SSRI_Sustained_Test, -(Row.names))
+
+SSRI_Sustained_Training <- Combine_M_SSRI_Sustained_Training$SSRI_Sustain
+SSRI_Sustained_Test <- Combine_M_SSRI_Sustained_Test$SSRI_Sustain
+
+M_SSRI_Sustained_TrainingFeatures <- as.matrix(select(Combine_M_SSRI_Sustained_Training,-(1)))
+
+M_SSRI_Sustained_TestFeatures <- as.matrix(select(Combine_M_SSRI_Sustained_Test,-(1)))
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
+
+save(SSRI_Sustained_Training,SSRI_Sustained_Test,M_SSRI_Sustained_TrainingFeatures,M_SSRI_Sustained_TestFeatures, file = "SSRI_Sustained_Inputs.rda")
+
+
+
+
+
+
+##Obtain_B2_Sustained_Any_Values.R
+
+setwd("/mnt/home/david_boamah/Original_Files")
+load("M_PREbatchcorr.rda")
+library(caret)
+library(dplyr)
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
+load("B2_SustainedUse_onlyExposure.rda")
+
+M_PRE_DF_transposed <- t(as.data.frame(M))
+
+Combine_M_B2_Sustained_Training <- merge(B2_Combined_Training_SustainedUse, M_PRE_DF_transposed, by = 0)
+rownames(Combine_M_B2_Sustained_Training) <- Combine_M_B2_Sustained_Training$Row.names
+Combine_M_B2_Sustained_Training <- select(Combine_M_B2_Sustained_Training, -(Row.names))
+
+
+Combine_M_B2_Sustained_Test <- merge(B2_Combined_Test_SustainedUse, M_PRE_DF_transposed, by = 0)
+rownames(Combine_M_B2_Sustained_Test) <- Combine_M_B2_Sustained_Test$Row.names
+Combine_M_B2_Sustained_Test <- select(Combine_M_B2_Sustained_Test, -(Row.names))
+
+B2_Sustained_Training <- Combine_M_B2_Sustained_Training$B2_Sustain
+B2_Sustained_Test <- Combine_M_B2_Sustained_Test$B2_Sustain
+
+M_B2_Sustained_TrainingFeatures <- as.matrix(select(Combine_M_B2_Sustained_Training,-(1)))
+
+M_B2_Sustained_TestFeatures <- as.matrix(select(Combine_M_B2_Sustained_Test,-(1)))
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
+
+save(B2_Sustained_Training,B2_Sustained_Test,M_B2_Sustained_TrainingFeatures,M_B2_Sustained_TestFeatures, file = "B2_Sustained_Inputs.rda")
 
 
 
