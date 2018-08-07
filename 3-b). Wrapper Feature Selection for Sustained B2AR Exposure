@@ -47,7 +47,18 @@ save(Sus_B2_topFeatures_mRMR_SVMRFE,Sus_B2_top_1000_M_training,B2_Sustained_Trai
 ### Performing wrapper feature selection algorithm that will then serve as the input features of random forest models
 
 
+library(caret)
+library(varSelRF)
+library(dplyr)
 
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
+load("mRMR_FS_Sus_B2.rda")
+load("B2_Sustained_Inputs.rda")
 
+Sus_B2_mRMR_VarSel_Index_noReOrder <- varSelCheck_NoReOrder(matrix=Sus_B2_top_1000_M_training,exposure=B2_Sustained_Training)
 
+Sus_B2_mRMR_VarSel_Index <- varSelCheck(matrix=Sus_B2_top_1000_M_training,exposure=B2_Sustained_Training)
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files/Feature_Selection/mRMR_VarSel")
+save(Sus_B2_mRMR_VarSel_Index,Sus_B2_top_1000_M_training,B2_Sustained_Training,Sus_B2_top_1000_M_test,B2_Sustained_Test, file = "mRMR_varSelRF_Sus_B2.rda")
 
