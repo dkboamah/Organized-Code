@@ -168,5 +168,99 @@ legend("bottomright", inset=.02, legend=c("Sustained SSRI; AUC: 0.677", "Permute
 dev.off()
 
 
+###############
+## Sustained SSRI
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files/Feature_Selection/mRMR_SVM_RFE")
+load("mRMR_SVMRFE_Sus_SSRI_10folds.rda")
+
+load("mRMR_SVMRFE_Sus_SSRI_5folds.rda")
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/Scripts_Directory/TrainingModels")
+source("Training_ROC_Objects.R")
+
+library(caret)
+library(pROC)
+library(densratio)
+
+number_list <- c(1:200)
+number_list <- as.list(number_list)
+number_list
+
+setwd("/mnt/home/david_boamah/Data_Analysis/rda_Files")
+load("Batch2_Data.rda")
+
+Sus_SSRI_top_1000_M_test <- testMatrix_Creation(matrix=Sus_SSRI_top_1000_M_training,testMatrix=Batch2_M_Matrix)
+
+
+testMatrix_K <- Make_Matrix_K(matrix=Sus_SSRI_top_1000_M_training,testMatrix=Sus_SSRI_top_1000_M_test)
+testMatrix_U <- Make_Matrix_U(matrix=Sus_SSRI_top_1000_M_training,testMatrix=Sus_SSRI_top_1000_M_test)
+
+svmL_test_list <- sapply(X=number_list,FUN=svmL_Test_AUC,vector=Sus_SSRI_topFeatures_mRMR_SVMRFE,matrix=Sus_SSRI_top_1000_M_training,exposure=SSRI_Sustained_Training,testMatrix=Sus_SSRI_top_1000_M_test,testExposure=Sus_Batch2_SSRI_Use)
+svmL_test_list_K <- sapply(X=number_list,FUN=svmL_Test_AUC,vector=Sus_SSRI_topFeatures_mRMR_SVMRFE,matrix=Sus_SSRI_top_1000_M_training,exposure=SSRI_Sustained_Training,testMatrix=testMatrix_K,testExposure=Sus_Batch2_SSRI_Use)
+svmL_test_list_U <- sapply(X=number_list,FUN=svmL_Test_AUC,vector=Sus_SSRI_topFeatures_mRMR_SVMRFE,matrix=Sus_SSRI_top_1000_M_training,exposure=SSRI_Sustained_Training,testMatrix=testMatrix_U,testExposure=Sus_Batch2_SSRI_Use)
+
+10 fold 3
+
+max(svmL_test_list)
+max(svmL_test_list_K)
+max(svmL_test_list_U)
+
+#None: 0.6880814 - 2
+#K: 0.6604651 - 192
+#U: 0.6231105 - 91
+
+which(unlist(svmL_test_list)==max(unlist(svmL_test_list))) 
+which(unlist(svmL_test_list_K)==max(unlist(svmL_test_list_K))) 
+which(unlist(svmL_test_list_U)==max(unlist(svmL_test_list_U))) 
+
+
+
+
+svmR_test_list <- sapply(X=number_list,FUN=svmR_Test_AUC,vector=Sus_SSRI_topFeatures_mRMR_SVMRFE,matrix=Sus_SSRI_top_1000_M_training,exposure=SSRI_Sustained_Training,testMatrix=Sus_SSRI_top_1000_M_test,testExposure=Sus_Batch2_SSRI_Use)
+svmR_test_list_K <- sapply(X=number_list,FUN=svmR_Test_AUC,vector=Sus_SSRI_topFeatures_mRMR_SVMRFE,matrix=Sus_SSRI_top_1000_M_training,exposure=SSRI_Sustained_Training,testMatrix=testMatrix_K,testExposure=Sus_Batch2_SSRI_Use)
+svmR_test_list_U <- sapply(X=number_list,FUN=svmR_Test_AUC,vector=Sus_SSRI_topFeatures_mRMR_SVMRFE,matrix=Sus_SSRI_top_1000_M_training,exposure=SSRI_Sustained_Training,testMatrix=testMatrix_U,testExposure=Sus_Batch2_SSRI_Use)
+
+10 fold 3
+
+max(svmR_test_list)
+max(svmR_test_list_K)
+max(svmR_test_list_U)
+
+which(unlist(svmR_test_list)==max(unlist(svmR_test_list))) 
+which(unlist(svmR_test_list_K)==max(unlist(svmR_test_list_K))) 
+which(unlist(svmR_test_list_U)==max(unlist(svmR_test_list_U))) 
+
+
+#None: 0.6764535 - 52
+#K: 0.7427326 - 9
+#U: 0.7209302 - 8
+
+
+svmL_test_pred_2_No <- svmL_Test_pred(x=2,vector=Sus_SSRI_topFeatures_mRMR_SVMRFE,matrix=Sus_SSRI_top_1000_M_training,exposure=SSRI_Sustained_Training,testMatrix=Sus_SSRI_top_1000_M_test,testExposure=Sus_Batch2_SSRI_Use)
+svmL_test_pred_192_K <- svmL_Test_pred(x=192,vector=Sus_SSRI_topFeatures_mRMR_SVMRFE,matrix=Sus_SSRI_top_1000_M_training,exposure=SSRI_Sustained_Training,testMatrix=testMatrix_K,testExposure=Sus_Batch2_SSRI_Use)
+svmL_test_pred_91_U <- svmL_Test_pred(x=91,vector=Sus_SSRI_topFeatures_mRMR_SVMRFE,matrix=Sus_SSRI_top_1000_M_training,exposure=SSRI_Sustained_Training,testMatrix=testMatrix_U,testExposure=Sus_Batch2_SSRI_Use)
+
+svmR_test_pred_52_No <- svmR_Test_pred(x=52,vector=Sus_SSRI_topFeatures_mRMR_SVMRFE,matrix=Sus_SSRI_top_1000_M_training,exposure=SSRI_Sustained_Training,testMatrix=Sus_SSRI_top_1000_M_test,testExposure=Sus_Batch2_SSRI_Use)
+svmR_test_pred_9_K <- svmR_Test_pred(x=9,vector=Sus_SSRI_topFeatures_mRMR_SVMRFE,matrix=Sus_SSRI_top_1000_M_training,exposure=SSRI_Sustained_Training,testMatrix=testMatrix_K,testExposure=Sus_Batch2_SSRI_Use)
+svmR_test_pred_8_U <- svmR_Test_pred(x=8,vector=Sus_SSRI_topFeatures_mRMR_SVMRFE,matrix=Sus_SSRI_top_1000_M_training,exposure=SSRI_Sustained_Training,testMatrix=testMatrix_U,testExposure=Sus_Batch2_SSRI_Use)
+
+svmL_test_pred_2_No$class <- Sus_Batch2_SSRI_Use
+svmL_test_pred_192_K$class <- Sus_Batch2_SSRI_Use
+svmL_test_pred_91_U$class <- Sus_Batch2_SSRI_Use
+
+svmR_test_pred_52_No$class <- Sus_Batch2_SSRI_Use
+svmR_test_pred_9_K$class <- Sus_Batch2_SSRI_Use
+svmR_test_pred_8_U$class <- Sus_Batch2_SSRI_Use
+
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/Tables")
+write.csv(svmR_test_pred_52_No, file = "Sus_SSRI_svmR_test_52_pred_No.csv")
+write.csv(svmR_test_pred_9_K, file = "Sus_SSRI_svmR_test_9_pred_K.csv")
+write.csv(svmR_test_pred_8_U, file = "Sus_SSRI_svmR_test_8_pred_U.csv")
+
+write.csv(svmL_test_pred_2_No, file = "Sus_SSRI_svmL_test_2_pred_No.csv")
+write.csv(svmL_test_pred_192_K, file = "Sus_SSRI_svmL_test_192_pred_K.csv")
+write.csv(svmL_test_pred_91_U, file = "Sus_SSRI_svmL_test_91_pred_U.csv")
 
 
