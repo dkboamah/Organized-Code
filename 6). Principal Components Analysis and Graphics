@@ -1,1 +1,198 @@
 
+PC_Total_Batch1 <- prcomp(Batch1_M_Matrix,scale.=TRUE)
+PC_Total_Batch2 <- prcomp(Batch2_M_Matrix,scale.=TRUE)
+
+PC_Total_Batch1_Values <- as.data.frame(PC_Total_Batch1$x)
+PC_Total_Batch2_Values <- as.data.frame(PC_Total_Batch2$x)
+
+PC_Total_Batch1_Values <- PC_Total_Batch1_Values[,1:2]
+PC_Total_Batch2_Values <- PC_Total_Batch2_Values[,1:2]
+
+top_957_vector <- head(Sus_SSRI_mRMR_VarSel_Index_noReOrder,n=957)
+
+Batch1_957_Matrix <- top_features_Matrix(vector=top_957_vector,matrix=Sus_SSRI_top_1000_M_training)
+Batch2_957_Matrix <- testMatrix_Creation(matrix=Batch1_957_Matrix,testMatrix=Batch2_M_Matrix)
+
+KLIEP_957_Matrix <- testMatrix_Creation(matrix=Batch1_957_Matrix,testMatrix=testMatrix_K)
+uLSIF_957_Matrix <- testMatrix_Creation(matrix=Batch1_957_Matrix,testMatrix=testMatrix_U)
+Batch1_957_Matrix <- testMatrix_Creation(matrix=uLSIF_957_Matrix,testMatrix=Batch1_M_Matrix)
+
+PC__Batch1_No <- prcomp(Batch1_957_Matrix,scale.=TRUE)
+PC__Batch2_No <- prcomp(Batch2_957_Matrix,scale.=TRUE)
+
+PC__Batch2_KLIEP <- prcomp(KLIEP_957_Matrix,scale.=TRUE)
+
+PC__Batch2_uLSIF <- prcomp(uLSIF_957_Matrix,scale.=TRUE)
+
+PC__Batch1_No_Values <- as.data.frame(PC__Batch1_No$x)
+PC__Batch2_No_Values <- as.data.frame(PC__Batch2_No$x)
+PC__Batch2_KLIEP_Values <- as.data.frame(PC__Batch2_KLIEP$x)
+PC__Batch2_uLSIF_Values <- as.data.frame(PC__Batch2_uLSIF$x)
+
+PC__Batch1_No_Values <- PC__Batch1_No_Values[,1:2]
+PC__Batch2_No_Values <- PC__Batch2_No_Values[,1:2]
+PC__Batch2_KLIEP_Values <- PC__Batch2_KLIEP_Values[,1:2]
+PC__Batch2_uLSIF_Values <- PC__Batch2_uLSIF_Values[,1:2]
+
+PC_Total_Batch1_Values$class <- Sus_Batch1_SSRI_Use
+PC_Total_Batch2_Values$class <- Sus_Batch2_SSRI_Use
+PC__Batch1_No_Values$class <- Sus_Batch1_SSRI_Use
+PC__Batch2_No_Values$class <- Sus_Batch2_SSRI_Use
+PC__Batch2_KLIEP_Values$class <- Sus_Batch2_SSRI_Use
+PC__Batch2_uLSIF_Values$class <- Sus_Batch2_SSRI_Use
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/Tables")
+write.csv(PC_Total_Batch1_Values,file="PC_Total_Batch1_Values.csv")
+write.csv(PC_Total_Batch2_Values,file="PC_Total_Batch2_Values.csv")
+write.csv(PC__Batch1_No_Values,file="PC__Batch1_No_Values.csv")
+write.csv(PC__Batch2_No_Values,file="PC__Batch2_No_Values.csv")
+write.csv(PC__Batch2_KLIEP_Values,file="PC__Batch2_KLIEP_Values.csv")
+write.csv(PC__Batch2_uLSIF_Values,file="PC__Batch2_uLSIF_Values.csv")
+
+RF_test_list_NONE_DF <- as.data.frame(unlist(RF_test_list_NONE))
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/Tables")
+write.csv(RF_test_list_NONE_DF,file="RF_test_list_NONE_DF.csv")
+
+############ 1 #################
+PC_Total_Batch1_Values <- read.csv("PC_Total_Batch1_Values.csv")
+PC_Total_Batch1_Values$color <- "black"
+PC_Total_Batch1_Values$shape <- ifelse(PC_Total_Batch1_Values$class==0,0,15)
+
+max_x_pctb1 <- ceiling(max(PC_Total_Batch1_Values$PC1))
+min_x_pctb1 <- floor(min(PC_Total_Batch1_Values$PC1))
+
+max_y_pctb1 <- ceiling(max(PC_Total_Batch1_Values$PC2))
+min_y_pctb1 <- floor(min(PC_Total_Batch1_Values$PC2))
+
+x_label <- "Principal Component 1"
+y_label <- "Principal Component 2"
+
+par(mfrow=c(1,1))
+plot(x = PC_Total_Batch1_Values$PC1, y = PC_Total_Batch1_Values$PC2, xlim = c(min_x, max_x), col=PC_Total_Batch1_Values$color,pch=PC_Total_Batch1_Values$shape, ylim = c(min_x, max_y), xlab = x_label, ylab = y_label)
+
+############ 2 #################
+PC_Total_Batch2_Values <- read.csv("PC_Total_Batch2_Values.csv")
+PC_Total_Batch2_Values$color <- "grey"
+PC_Total_Batch2_Values$shape <- ifelse(PC_Total_Batch2_Values$class==0,0,15)
+
+max_x_pctb2 <- ceiling(max(PC_Total_Batch2_Values$PC1))
+min_x_pctb2 <- floor(min(PC_Total_Batch2_Values$PC1))
+
+max_y_pctb2 <- ceiling(max(PC_Total_Batch2_Values$PC2))
+min_y_pctb2 <- floor(min(PC_Total_Batch2_Values$PC2))
+
+x_label <- "Principal Component 1"
+y_label <- "Principal Component 2"
+
+par(mfrow=c(1,1))
+plot(x = PC_Total_Batch2_Values$PC1, y = PC_Total_Batch2_Values$PC2, xlim = c(min_x, max_x), col=PC_Total_Batch2_Values$color,pch=PC_Total_Batch2_Values$shape, ylim = c(min_x, max_y), xlab = x_label, ylab = y_label)
+
+############ A #################
+
+pdf("PC_Total_Values.pdf",10,10)
+PC_Total_Both_Values <- rbind(PC_Total_Batch1_Values,PC_Total_Batch2_Values)
+par(mfrow=c(1,1))
+legend("bottomright", inset=.02, legend=c("Batch 1", "Batch 2"), col=c("black", "grey"), pch=c(0,15),cex=1.0)
+plot(x = PC_Total_Both_Values$PC1, y = PC_Total_Both_Values$PC2, xlim = c(min_x_pctb2, max_x_pctb2), col=PC_Total_Both_Values$color,pch=PC_Total_Both_Values$shape, ylim = c(min_y_pctb2, max_y_pctb1), xlab = x_label, ylab = y_label)
+legend("bottomright", inset=.02, legend=c("Unexposed Batch 1","Exposed Batch 1","Unexposed Batch 2","Exposed Batch 2"), col=c("black","black","grey", "grey"), pch=c(0,15,0,15),cex=1.0)
+dev.off()
+
+############ 3 #################
+
+PC__Batch1_No_Values <- read.csv("PC__Batch1_No_Values.csv")
+PC__Batch1_No_Values$color <- "black"
+PC__Batch1_No_Values$shape <- ifelse(PC__Batch1_No_Values$class==0,0,15)
+
+max_x_pcpb1 <- ceiling(max(PC__Batch1_No_Values$PC1))
+min_x_pcpb1 <- floor(min(PC__Batch1_No_Values$PC1))
+
+max_y_pcpb1 <- ceiling(max(PC__Batch1_No_Values$PC2))
+min_y_pcpb1 <- floor(min(PC__Batch1_No_Values$PC2))
+
+x_label <- "Principal Component 1"
+y_label <- "Principal Component 2"
+
+par(mfrow=c(1,1))
+plot(x = PC__Batch1_No_Values$PC1, y = PC__Batch1_No_Values$PC2, xlim = c(min_x, max_x), col=PC__Batch1_No_Values$color,pch=PC__Batch1_No_Values$shape, ylim = c(min_x, max_y), xlab = x_label, ylab = y_label)
+
+############ 4 #################
+
+PC__Batch2_No_Values <- read.csv("PC__Batch2_No_Values.csv")
+PC__Batch2_No_Values$color <- "grey"
+PC__Batch2_No_Values$shape <- ifelse(PC__Batch2_No_Values$class==0,0,15)
+
+max_x_pcpb2 <- ceiling(max(PC__Batch2_No_Values$PC1))
+min_x_pcpb2 <- floor(min(PC__Batch2_No_Values$PC1))
+
+max_y_pcpb2 <- ceiling(max(PC__Batch2_No_Values$PC2))
+min_y_pcpb2 <- floor(min(PC__Batch2_No_Values$PC2))
+
+x_label <- "Principal Component 1"
+y_label <- "Principal Component 2"
+
+par(mfrow=c(1,1))
+plot(x = PC__Batch2_No_Values$PC1, y = PC__Batch2_No_Values$PC2, xlim = c(min_x, max_x), col=PC__Batch2_No_Values$color,pch=PC__Batch2_No_Values$shape, ylim = c(min_x, max_y), xlab = x_label, ylab = y_label)
+
+############ 5 #################
+
+PC__Batch2_KLIEP_Values <- read.csv("PC__Batch2_KLIEP_Values.csv")
+PC__Batch2_KLIEP_Values$color <- "grey"
+PC__Batch2_KLIEP_Values$shape <- ifelse(PC__Batch2_KLIEP_Values$class==0,0,15)
+
+max_x_pcpbk2 <- ceiling(max(PC__Batch2_KLIEP_Values$PC1))
+min_x_pcpbk2 <- floor(min(PC__Batch2_KLIEP_Values$PC1))
+
+max_y_pcpbk2 <- ceiling(max(PC__Batch2_KLIEP_Values$PC2))
+min_y_pcpbk2 <- floor(min(PC__Batch2_KLIEP_Values$PC2))
+
+x_label <- "Principal Component 1"
+y_label <- "Principal Component 2"
+
+par(mfrow=c(1,1))
+plot(x = PC__Batch2_KLIEP_Values$PC1, y = PC__Batch2_KLIEP_Values$PC2, xlim = c(min_x, max_x), col=PC__Batch2_KLIEP_Values$color,pch=PC__Batch2_KLIEP_Values$shape, ylim = c(min_x, max_y), xlab = x_label, ylab = y_label)
+
+############ 6 #################
+
+PC__Batch2_uLSIF_Values <- read.csv("PC__Batch2_uLSIF_Values.csv")
+PC__Batch2_uLSIF_Values$color <- "grey"
+PC__Batch2_uLSIF_Values$shape <- ifelse(PC__Batch2_uLSIF_Values$class==0,0,15)
+
+max_x_pcpbu2 <- ceiling(max(PC__Batch2_uLSIF_Values$PC1))
+min_x_pcpbu2 <- floor(min(PC__Batch2_uLSIF_Values$PC1))
+
+max_y_pcpbu2 <- ceiling(max(PC__Batch2_uLSIF_Values$PC2))
+min_y_pcpbu2 <- floor(min(PC__Batch2_uLSIF_Values$PC2))
+
+x_label <- "Principal Component 1"
+y_label <- "Principal Component 2"
+
+par(mfrow=c(1,1))
+plot(x = PC__Batch2_uLSIF_Values$PC1, y = PC__Batch2_uLSIF_Values$PC2, xlim = c(min_x, max_x), col=PC__Batch2_uLSIF_Values$color,pch=PC__Batch2_uLSIF_Values$shape, ylim = c(min_x, max_y), xlab = x_label, ylab = y_label)
+
+############ C #################
+
+pdf("PC_Partial_NO_Values.pdf",10,10)
+PC__Partial_No_Values <- rbind(PC__Batch1_No_Values,PC__Batch2_No_Values)
+par(mfrow=c(1,1))
+plot(x = PC__Partial_No_Values$PC1, y = PC__Partial_No_Values$PC2, xlim = c(min_x_pcpb2, max_x_pcpb2), col=PC__Partial_No_Values$color,pch=PC__Partial_No_Values$shape, ylim = c(min_y_pcpb2, max_y_pcpb1), xlab = x_label, ylab = y_label)
+legend("bottomright", inset=.02, legend=c("Unexposed Batch 1","Exposed Batch 1","Unexposed Batch 2","Exposed Batch 2"), col=c("black","black","grey", "grey"), pch=c(0,15,0,15),cex=1.0)
+dev.off()
+
+############ D #################
+
+pdf("PC_Partial_K_Values.pdf",10,10)
+PC__Partial_K_Values <- rbind(PC__Batch1_No_Values,PC__Batch2_KLIEP_Values)
+par(mfrow=c(1,1))
+plot(x = PC__Partial_K_Values$PC1, y = PC__Partial_K_Values$PC2, xlim = c(min_x_pcpb1, max_x_pcpb1), col=PC__Partial_K_Values$color,pch=PC__Partial_K_Values$shape, ylim = c(min_y_pcpb1, max_y_pcpb1), xlab = x_label, ylab = y_label)
+legend("bottomright", inset=.02, legend=c("Unexposed Batch 1","Exposed Batch 1","Unexposed Batch 2","Exposed Batch 2"), col=c("black","black","grey", "grey"), pch=c(0,15,0,15),cex=1.0)
+dev.off()
+
+############ E #################
+
+pdf("PC_Partial_U_Values.pdf",10,10)
+PC__Partial_U_Values <- rbind(PC__Batch1_No_Values,PC__Batch2_uLSIF_Values)
+par(mfrow=c(1,1))
+plot(x = PC__Partial_U_Values$PC1, y = PC__Partial_U_Values$PC2, xlim = c(min_x_pcpb1, max_x_pcpb1), col=PC__Partial_U_Values$color,pch=PC__Partial_U_Values$shape, ylim = c(min_y_pcpb1, max_y_pcpb1), xlab = x_label, ylab = y_label)
+legend("bottomright", inset=.02, legend=c("Unexposed Batch 1","Exposed Batch 1","Unexposed Batch 2","Exposed Batch 2"), col=c("black","black","grey", "grey"), pch=c(0,15,0,15),cex=1.0)
+dev.off()
