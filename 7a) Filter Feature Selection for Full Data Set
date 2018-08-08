@@ -1,1 +1,262 @@
 
+#################################################################################################
+## Filter Selection for Sustained SSRI
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
+load("All_Cross_Info.rda")
+
+library(caret)
+library(mRMRe)
+library(dplyr)
+library(limma)
+
+set.seed(123)
+Up_Samp_DF <- upSample(x=All_M_values_PC,y=All_Sus_SSRI_Exposure)
+M_Matrix_Up <- as.matrix(Up_Samp_DF[,1:455664])
+Exposure_Up <- as.vector(Up_Samp_DF[,455665])
+
+design_mat <- model.matrix(~Exposure_Up)
+dim(design_mat)
+head(design_mat)
+
+M_Matrix_Up_t <- t(M_Matrix_Up)
+
+fit <- lmFit(M_Matrix_Up_t,design_mat)
+fit_eBayes <- eBayes(fit, robust=TRUE)
+
+fit_table <- topTable(fit_eBayes,coef=2, sort.by = "P",number=45566)
+
+limma_index <- vector()
+
+for (i in 1:length(rownames(fit_table))){
+limma_index[i] <- which(rownames(fit_table)[i] == colnames(All_M_values_PC))
+}
+
+Sus_SSRI_limma_CpG <- top_features_Matrix(vector=limma_index,matrix=All_M_values_PC)
+
+set.seed(123)
+Up_Samp_DF_reduced <- upSample(x=Sus_SSRI_limma_CpG,y=All_Sus_SSRI_Exposure)
+M_Matrix_Up_reduced <- as.matrix(Up_Samp_DF[,1:45566])
+Exposure_Up_reduced <- as.vector(Up_Samp_DF[,45567])
+
+Sus_SSRI_1000_topFeatures <- mRMR_FS(matrix=M_Matrix_Up_reduced,exposure=Exposure_Up_reduced,number=1000)
+Sus_SSRI_top_1000_M <- top_features_Matrix(vector=Sus_SSRI_1000_topFeatures,matrix=Sus_SSRI_limma_CpG)
+
+Sus_SSRI_1000_topFeatures_minus <- Sus_SSRI_1000_topFeatures - 1
+Sus_SSRI_top_1000_M <- top_features_Matrix(vector=Sus_SSRI_1000_topFeatures_minus,matrix=Sus_SSRI_limma_CpG)
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
+save(All_Sus_SSRI_Exposure,Sus_SSRI_1000_topFeatures,Sus_SSRI_1000_topFeatures_minus,Sus_SSRI_top_1000_M, file = "mRMR_FS_All_Cross_Sus_SSRI.rda")
+
+## SVM-RFE
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
+load("mRMR_FS_All_Cross_Sus_SSRI.rda")
+
+setwd("/mnt/home/david_boamah/Data_Analysis/Scripts_Directory/Feature_Selection")
+source("msvmRFE_linear_new.R")
+
+library(caret)
+library(e1071)
+
+set.seed(123)
+Up_Samp_DF <- upSample(x=Sus_SSRI_top_1000_M,y=All_Sus_SSRI_Exposure)
+Up_Sample_DF <- cbind(Up_Samp_DF[,1001],Up_Samp_DF[1:1000])
+
+set.seed(123)
+nfold = 5
+nrows = nrow(Up_Sample_DF)
+folds = rep(1:nfold, len=nrows)[sample(nrows)]
+folds
+folds = lapply(1:nfold, function(x) which(folds == x))
+folds
+
+results = lapply(folds, svmRFE.wrap, Up_Sample_DF, k=5, halve.above=501)
+length(results)
+results
+
+top.features = WriteFeatures(results, Up_Sample_DF, save=F)
+head(top.features)
+
+Sus_SSRI_topFeatures_mRMR_SVMRFE <- top.features$FeatureID
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files/Feature_Selection/mRMR_SVM_RFE")
+
+save(Sus_SSRI_topFeatures_mRMR_SVMRFE,Sus_SSRI_top_1000_M,All_Sus_SSRI_Exposure, file = "mRMR_SVMRFE_Sus_SSRI_AllCross.rda"
+
+
+
+#################################################################################################
+## Filter Selection for Sustained B2
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
+load("All_Cross_Info.rda")
+
+library(caret)
+library(mRMRe)
+library(dplyr)
+library(limma)
+
+set.seed(123)
+Up_Samp_DF <- upSample(x=All_M_values_PC,y=All_Sus_B2_Exposure)
+M_Matrix_Up <- as.matrix(Up_Samp_DF[,1:455664])
+Exposure_Up <- as.vector(Up_Samp_DF[,455665])
+
+design_mat <- model.matrix(~Exposure_Up)
+dim(design_mat)
+head(design_mat)
+
+M_Matrix_Up_t <- t(M_Matrix_Up)
+
+fit <- lmFit(M_Matrix_Up_t,design_mat)
+fit_eBayes <- eBayes(fit, robust=TRUE)
+
+fit_table <- topTable(fit_eBayes,coef=2, sort.by = "P",number=45566)
+
+limma_index <- vector()
+
+for (i in 1:length(rownames(fit_table))){
+limma_index[i] <- which(rownames(fit_table)[i] == colnames(All_M_values_PC))
+}
+
+Sus_B2_limma_CpG <- top_features_Matrix(vector=limma_index,matrix=All_M_values_PC)
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
+load("mRMR_FS_All_Cross_Sus_B2.rda")
+
+Sus_B2_1000_topFeatures_minus <- Sus_B2_1000_topFeatures - 1
+Sus_B2_top_1000_M <- top_features_Matrix(vector=Sus_B2_1000_topFeatures_minus,matrix=Sus_B2_limma_CpG)
+
+save(All_Sus_B2_Exposure,Sus_B2_1000_topFeatures,Sus_B2_1000_topFeatures_minus,Sus_B2_top_1000_M, file = "mRMR_FS_All_Cross_Sus_B2.rda")
+
+## SVM-RFE
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
+load("mRMR_FS_All_Cross_Sus_B2.rda")
+
+setwd("/mnt/home/david_boamah/Data_Analysis/Scripts_Directory/Feature_Selection")
+source("msvmRFE_linear_new.R")
+
+library(caret)
+library(e1071)
+
+set.seed(123)
+Up_Samp_DF <- upSample(x=Sus_B2_top_1000_M,y=All_Sus_B2_Exposure)
+Up_Sample_DF <- cbind(Up_Samp_DF[,1001],Up_Samp_DF[1:1000])
+
+set.seed(123)
+nfold = 5
+nrows = nrow(Up_Sample_DF)
+folds = rep(1:nfold, len=nrows)[sample(nrows)]
+folds
+folds = lapply(1:nfold, function(x) which(folds == x))
+folds
+
+results = lapply(folds, svmRFE.wrap, Up_Sample_DF, k=5, halve.above=501)
+length(results)
+results
+
+top.features = WriteFeatures(results, Up_Sample_DF, save=F)
+head(top.features)
+
+Sus_B2_topFeatures_mRMR_SVMRFE <- top.features$FeatureID
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files/Feature_Selection/mRMR_SVM_RFE")
+
+save(Sus_B2_topFeatures_mRMR_SVMRFE,Sus_B2_top_1000_M,All_Sus_B2_Exposure, file = "mRMR_SVMRFE_Sus_B2_AllCross.rda"
+
+
+#################################################################################################
+## Filter Selection for Any SSRI
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
+load("All_Cross_Info.rda")
+
+library(caret)
+library(mRMRe)
+library(dplyr)
+library(limma)
+
+set.seed(123)
+Up_Samp_DF <- upSample(x=All_M_values_PC,y=All_Any_SSRI_Exposure)
+M_Matrix_Up <- as.matrix(Up_Samp_DF[,1:455664])
+Exposure_Up <- as.vector(Up_Samp_DF[,455665])
+
+design_mat <- model.matrix(~Exposure_Up)
+dim(design_mat)
+head(design_mat)
+
+M_Matrix_Up_t <- t(M_Matrix_Up)
+
+fit <- lmFit(M_Matrix_Up_t,design_mat)
+fit_eBayes <- eBayes(fit, robust=TRUE)
+
+fit_table <- topTable(fit_eBayes,coef=2, sort.by = "P",number=45566)
+
+limma_index <- vector()
+
+for (i in 1:length(rownames(fit_table))){
+limma_index[i] <- which(rownames(fit_table)[i] == colnames(All_M_values_PC))
+}
+
+Any_SSRI_limma_CpG <- top_features_Matrix(vector=limma_index,matrix=All_M_values_PC)
+
+set.seed(123)
+Up_Samp_DF_reduced <- upSample(x=Any_SSRI_limma_CpG,y=All_Any_SSRI_Exposure)
+M_Matrix_Up_reduced <- as.matrix(Up_Samp_DF[,1:45566])
+Exposure_Up_reduced <- as.vector(Up_Samp_DF[,45567])
+
+Any_SSRI_1000_topFeatures <- mRMR_FS(matrix=M_Matrix_Up_reduced,exposure=Exposure_Up_reduced,number=1000)
+Any_SSRI_top_1000_M <- top_features_Matrix(vector=Any_SSRI_1000_topFeatures,matrix=Any_SSRI_limma_CpG)
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
+save(All_Any_SSRI_Exposure,Any_SSRI_1000_topFeatures,Any_SSRI_top_1000_M, file = "mRMR_FS_All_Cross_Any_SSRI.rda")
+
+#################################################################################################
+## Filter Selection for Any B2
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
+load("All_Cross_Info.rda")
+
+library(caret)
+library(mRMRe)
+library(dplyr)
+library(limma)
+
+set.seed(123)
+Up_Samp_DF <- upSample(x=All_M_values_PC,y=All_Any_B2_Exposure)
+M_Matrix_Up <- as.matrix(Up_Samp_DF[,1:455664])
+Exposure_Up <- as.vector(Up_Samp_DF[,455665])
+
+design_mat <- model.matrix(~Exposure_Up)
+dim(design_mat)
+head(design_mat)
+
+M_Matrix_Up_t <- t(M_Matrix_Up)
+
+fit <- lmFit(M_Matrix_Up_t,design_mat)
+fit_eBayes <- eBayes(fit, robust=TRUE)
+
+fit_table <- topTable(fit_eBayes,coef=2, sort.by = "P",number=45566)
+
+limma_index <- vector()
+
+for (i in 1:length(rownames(fit_table))){
+limma_index[i] <- which(rownames(fit_table)[i] == colnames(All_M_values_PC))
+}
+
+Any_B2_limma_CpG <- top_features_Matrix(vector=limma_index,matrix=All_M_values_PC)
+
+set.seed(123)
+Up_Samp_DF_reduced <- upSample(x=Any_B2_limma_CpG,y=All_Any_B2_Exposure)
+M_Matrix_Up_reduced <- as.matrix(Up_Samp_DF[,1:45566])
+Exposure_Up_reduced <- as.vector(Up_Samp_DF[,45567])
+
+Any_B2_1000_topFeatures <- mRMR_FS(matrix=M_Matrix_Up_reduced,exposure=Exposure_Up_reduced,number=1000)
+Any_B2_top_1000_M <- top_features_Matrix(vector=Any_B2_1000_topFeatures,matrix=Any_B2_limma_CpG)
+
+setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
+save(All_Any_B2_Exposure,Any_B2_1000_topFeatures,Any_B2_top_1000_M, file = "mRMR_FS_All_Cross_Any_B2.rda")
+
+
+
