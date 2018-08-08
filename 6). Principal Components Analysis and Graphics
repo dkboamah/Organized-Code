@@ -1,3 +1,5 @@
+################################# Principal Componenets Analysis #################################
+
 
 PC_Total_Batch1 <- prcomp(Batch1_M_Matrix,scale.=TRUE)
 PC_Total_Batch2 <- prcomp(Batch2_M_Matrix,scale.=TRUE)
