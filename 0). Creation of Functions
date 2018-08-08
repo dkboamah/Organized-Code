@@ -18,7 +18,7 @@ mRMR_FS <- function(matrix,exposure,number){
 	return(top_features)
 }
 
-## Wrapper feature selection method to identify relevant features for modeling using the Random Forest model
+## Wrapper feature selection method to identify relevant features for modeling using the Random Forest model. As re-calculating the importance values after each iteration reduces accuracy of the subsequently built models, this function ranks the features using the initial importance of the values.
 
 varSelCheck_NoReOrder <- function(matrix,exposure){
   set.seed(123)
@@ -40,9 +40,6 @@ varSelCheck_NoReOrder <- function(matrix,exposure){
   index_vector <- varSel_imp$Index
   return(index_vector)
 }
-
-
-
 
 ############################################################################
 ### Data manipulation functions
@@ -74,7 +71,7 @@ testMatrix_Creation <- function(matrix,testMatrix){
 	return(newMatrix)
 }
 
-## The Make_Matrix_K function was created to perform density ratio estimation using the KLIEP method.
+## The Make_Matrix_K function was created to perform density ratio estimation using the KLIEP method of the densratio package.
 
 Make_Matrix_K <- function(matrix,testMatrix){
 	testingMatrix <- testMatrix
@@ -88,7 +85,7 @@ Make_Matrix_K <- function(matrix,testMatrix){
     return(testingMatrix)
 }
 
-## The Make_Matrix_U function was created to perform density ratio estimation using the uLSIF method.
+## The Make_Matrix_U function was created to perform density ratio estimation using the uLSIF method of the densratio package.
 
 Make_Matrix_U <- function(matrix,testMatrix){
 	testingMatrix <- testMatrix
@@ -398,19 +395,3 @@ Random_svmR_Plot_Train_ROC <- function(x,matrix,exposure){
     	plot.roc(modelTrain$pred$obs[selectedIndices], modelTrain$pred$X1[selectedIndices], add=TRUE, col="grey", lwd=0.5)
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
