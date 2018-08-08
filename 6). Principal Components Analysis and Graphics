@@ -1,5 +1,12 @@
 ################################# Principal Componenets Analysis #################################
 
+### The purpose of the following code is to obtain the first and second principal components derived from different sets of M-values. The purpose of the PCA is to provide a gross examination of the similarity between the training set and test set. 
+
+## Process: After obtaining the data set of M-values for both the training set (Batch 1) and test set (Batch 2), calculate the PCs using the prcomp() function. These will then be used to produce graphs where the first principal component is on the x-axis and the second principal component is on the y-axis.
+
+##Breakdown of order of plot creation:
+#1:
+
 
 PC_Total_Batch1 <- prcomp(Batch1_M_Matrix,scale.=TRUE)
 PC_Total_Batch2 <- prcomp(Batch2_M_Matrix,scale.=TRUE)
@@ -50,11 +57,6 @@ write.csv(PC__Batch1_No_Values,file="PC__Batch1_No_Values.csv")
 write.csv(PC__Batch2_No_Values,file="PC__Batch2_No_Values.csv")
 write.csv(PC__Batch2_KLIEP_Values,file="PC__Batch2_KLIEP_Values.csv")
 write.csv(PC__Batch2_uLSIF_Values,file="PC__Batch2_uLSIF_Values.csv")
-
-RF_test_list_NONE_DF <- as.data.frame(unlist(RF_test_list_NONE))
-
-setwd("/mnt/home/david_boamah/New_Data_Analysis/Tables")
-write.csv(RF_test_list_NONE_DF,file="RF_test_list_NONE_DF.csv")
 
 ############ 1 #################
 PC_Total_Batch1_Values <- read.csv("PC_Total_Batch1_Values.csv")
