@@ -16,6 +16,7 @@ M_Matrix_Up <- as.matrix(Up_Samp_DF[,1:455664])
 Exposure_Up <- as.vector(Up_Samp_DF[,455665])
 
 ### mRMR  Function does not work with greater than 46000 features... Reduce number of features
+## This was accomplished by using unadjusted methylation analysis using the limma package
 
 design_mat <- model.matrix(~Exposure_Up)
 dim(design_mat)
