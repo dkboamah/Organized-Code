@@ -4,7 +4,7 @@
 
 setwd("/mnt/home/david_boamah/Data_Analysis/Scripts_Directory/Feature_Selection")
 
-### Load code listed in "0-a). Functions for SVM-RFE"
+### Load code listed in "0-a). Functions for SVM-RFE" using the source command
 source("msvmRFE_linear_new.R")
 
 library(caret)
