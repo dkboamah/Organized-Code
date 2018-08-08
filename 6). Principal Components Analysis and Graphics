@@ -5,8 +5,20 @@
 ## Process: After obtaining the data set of M-values for both the training set (Batch 1) and test set (Batch 2), calculate the PCs using the prcomp() function. These will then be used to produce graphs where the first principal component is on the x-axis and the second principal component is on the y-axis.
 
 ##Breakdown of order of plot creation:
-#1:
 
+#1: Batch 1 with all 455,644 M-values used to calculate the PCs
+#2: Batch 2 with all 455,644 M-values used to calculate the PCs
+
+#A: Both Batch 1 and Batch with all 455,644 M-values used to calculate the PCs
+
+#3: Batch 1 with the 957 features determined from mRMR and varSelRF feature selction used to calculate PCs
+#4: Batch 2 with the 957 features determined from mRMR and varSelRF feature selction used to calculate PCs
+#5: Batch 2 with the 957 features determined from mRMR and varSelRF feature selction used to calculate PCs after performing density ratio estimation using the KLIEP method
+#6: Batch 2 with the 957 features determined from mRMR and varSelRF feature selction used to calculate PCs after performing density ratio estimation using the uLSIF method
+
+#C: Both Batch 1 and Batch 2 with the 957 M-values used to calculate the PCs (no density estimation performed)
+#D: Both Batch 1 and Batch 2 with the 957 M_values used to calculate the PCs (density estimation using the KLIEP method performed)
+#E: Both Batch 1 and Batch 2 with the 957 M_values used to calculate the PCs (density estimation using the uLSIF method performed)
 
 PC_Total_Batch1 <- prcomp(Batch1_M_Matrix,scale.=TRUE)
 PC_Total_Batch2 <- prcomp(Batch2_M_Matrix,scale.=TRUE)
