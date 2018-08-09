@@ -1,6 +1,9 @@
 
-###############################################
-# Sus B2
+####################################### Calculate Model Test Performance #######################################
+
+### The following code was created to calculate the optimal test performance of models built using features selected using feature selection methods.
+## After training the models on samples derived from Batch 1, the test performance of models was calculated (as AUC values) for samples (of varying size) of the features with the highest ranked importance. We then identify the sample of features with the maximum value for AUC. This would then be used to build ROC curves.
+## Additionally, density ratio estimation was used to scale the M-value values from Batch 2 based on Batch 1. The same procedure was performed for these scaled data.
 
 library(dplyr)
 library(caret)
@@ -8,20 +11,17 @@ library(varSelRF)
 library(pROC)
 library(densratio)
 
-
 setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files/Feature_Selection/mRMR_SVM_RFE")
-load("Sustained_B2_Boruta_varSelRF_Features.rda")
+load("mRMR_varSelRF_Sus_B2.rda")
 
-number_list <- c(1:length(Sus_B2_mRMR_Boruta_VarSel_Index)
-number_list <- as.list(number_list)
-
-testMatrix_K <- Make_Matrix_K(matrix=Sus_B2_Training_Boruta,testMatrix=Sus_B2_Test_Boruta)
-testMatrix_U <- Make_Matrix_U(matrix=Sus_B2_Training_Boruta,testMatrix=Sus_B2_Test_Boruta)
-
+## Build list to analyze the AUC value for different number of the top ranked features
 
 number_list <- c(1:length(Sus_B2_mRMR_VarSel_Index_noReOrder))
 number_list <- as.list(number_list)
 number_list
+
+setwd("/mnt/home/david_boamah/Data_Analysis/rda_Files")
+load("Batch1_Data.rda")
 
 Sus_B2_top_1000_M_test <- testMatrix_Creation(matrix=Sus_B2_top_1000_M_training,testMatrix=Batch2_M_Matrix)
 
@@ -32,31 +32,13 @@ RF_test_list_NONE <- sapply(X=number_list,FUN=RF_Test_AUC,vector=Sus_B2_mRMR_Var
 RF_test_list_K_NONE <- sapply(X=number_list,FUN=RF_Test_AUC,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_top_1000_M_training,exposure=B2_Sustained_Training,testMatrix=testMatrix_K,testExposure=Sus_Batch2_B2_Use)
 RF_test_list_U_NONE <- sapply(X=number_list,FUN=RF_Test_AUC,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_top_1000_M_training,exposure=B2_Sustained_Training,testMatrix=testMatrix_U,testExposure=Sus_Batch2_B2_Use)
 
-max(RF_test_list_NONE)
-max(RF_test_list_K_NONE) 
-max(RF_test_list_U_NONE) 
-
-which(unlist(RF_test_list_NONE)==max(unlist(RF_test_list_NONE))) #43
-which(unlist(RF_test_list_K_NONE)==max(unlist(RF_test_list_K_NONE))) #820
-which(unlist(RF_test_list_U_NONE)==max(unlist(RF_test_list_U_NONE))) #430
-
 #None: 0.7531977 - 484
 #K: 0.7530523 - 41
 #U: 0.7734012 - 54
 
-RF_test_pred_484_No_NONE <- RF_Test_pred(x=484,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_top_1000_M_training,exposure=B2_Sustained_Training,testMatrix=Sus_B2_top_1000_M_test,testExposure=Sus_Batch2_B2_Use)
-RF_test_pred_41_K_NONE <- RF_Test_pred(x=41,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_top_1000_M_training,exposure=B2_Sustained_Training,testMatrix=testMatrix_K,testExposure=Sus_Batch2_B2_Use)
-RF_test_pred_54_U_NONE <- RF_Test_pred(x=54,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_top_1000_M_training,exposure=B2_Sustained_Training,testMatrix=testMatrix_U,testExposure=Sus_Batch2_B2_Use)
-
-RF_test_pred_484_No_NONE$class <- Sus_Batch2_B2_Use
-RF_test_pred_41_K_NONE$class <- Sus_Batch2_B2_Use
-RF_test_pred_54_U_NONE$class <- Sus_Batch2_B2_Use
-
-setwd("/mnt/home/david_boamah/New_Data_Analysis/Tables")
-write.csv(RF_test_pred_484_No_NONE, file = "Sus_B2_RF_test_484_pred_K_NONE.csv")
-write.csv(RF_test_pred_41_K_NONE, file = "Sus_B2_RF_test_41_pred_No_NONE.csv")
-write.csv(RF_test_pred_54_U_NONE, file = "Sus_B2_RF_test_54_pred_U_NONE.csv")
-
+RF_test_ROC_484_No_NONE <- RF_Test_ROC(x=484,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_top_1000_M_training,exposure=B2_Sustained_Training,testMatrix=Sus_B2_top_1000_M_test,testExposure=Sus_Batch2_B2_Use)
+RF_test_ROC_41_K_NONE <- RF_Test_ROC(x=41,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_top_1000_M_training,exposure=B2_Sustained_Training,testMatrix=testMatrix_K,testExposure=Sus_Batch2_B2_Use)
+RF_test_ROC_54_U_NONE <- RF_Test_ROC(x=54,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_top_1000_M_training,exposure=B2_Sustained_Training,testMatrix=testMatrix_U,testExposure=Sus_Batch2_B2_Use)
 
 RF_sus_B2_pred_Sus_B2 <- RF_Train_Best_tune(x=1000,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_B2_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
 svmL_sus_B2_pred_Sus_B2 <- svmL_Train_Best_Tune(x=1000,vector=Sus_B2_topFeatures_mRMR_SVMRFE,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_B2_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
