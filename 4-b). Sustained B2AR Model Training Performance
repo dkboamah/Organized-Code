@@ -9,183 +9,36 @@ setwd("/mnt/home/david_boamah/Data_Analysis/rda_Files")
 load("Batch1_Data.rda")
 
 setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files/Feature_Selection/mRMR_SVM_RFE")
-load("Sustained_B2_Boruta_varSelRF_Features.rda")
-setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files/Feature_Selection/mRMR_SVM_RFE")
 load("mRMR_SVMRFE_Sus_B2.rda")
 setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files/Feature_Selection/mRMR_VarSel")
 load("mRMR_varSelRF_Sus_B2.rda")
 
-setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files/Feature_Selection/mRMR_SVM_RFE")
-load("mRMR_SVMRFE_Sus_B2_10fold.rda")
-
-
-
 Sus_B2_Batch1 <- testMatrix_Creation(matrix=Sus_B2_top_1000_M_training,testMatrix=Batch1_M_Matrix)
-
 
 number_list <- c((1:100)*10)
 number_list <- as.list(number_list)
 number_list
 
-Sus_B2_mRMR_VarSel_Index_noReOrder <- varSelCheck_NoReOrder(matrix=Sus_B2_top_1000_M_training,exposure=B2_Sustained_Training)
+### Calculate the training performance of models built using the 1000 features selected using mRMR filter feature selection approach
+## Additionally, determine the specificity of these features for the prediction task by calclulating the performance when applied to alternate prediction tasks (predicting exposure to SSRI - Sustained or Any Exposure)
 
-RF_Sus_Train_list <- sapply(X=number_list,FUN=RF_Train_Best_Tune,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_top_1000_M_training,exposure=B2_Sustained_Training,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
-svmL_Sus_Train_list <- sapply(X=number_list,FUN=svmL_Train_Best_Tune,vector=Sus_B2_topFeatures_mRMR_SVMRFE,matrix=Sus_B2_top_1000_M_training,exposure=B2_Sustained_Training,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
-svmR_Sus_Train_list <- sapply(X=number_list,FUN=svmR_Train_Best_Tune,vector=Sus_B2_topFeatures_mRMR_SVMRFE,matrix=Sus_B2_top_1000_M_training,exposure=B2_Sustained_Training,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
+RF_sus_B2_ROC_Sus_B2 <- RF_Train_Best_Tune_ROC(x=1000,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_B2_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
+RF_sus_B2_ROC_Sus_SSRI <- RF_Train_Best_Tune_ROC(x=1000,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_SSRI_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
+RF_sus_B2_ROC_Any_SSRI <- RF_Train_Best_Tune_ROC(x=1000,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_Batch1,exposure=Any_Batch1_SSRI_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
 
-Train_AUC_DF <- data.frame(number_list,RF_Sus_Train_list,svmL_Sus_Train_list,svmR_Sus_Train_list)
+svmL_sus_B2_ROC_Sus_B2 <- svmL_Train_Best_Tune_ROC(x=1000,vector=Sus_B2_topFeatures_mRMR_SVMRFE,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_B2_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
+svmL_sus_B2_ROC_Sus_SSRI <- svmL_Train_Best_Tune_ROC(x=1000,vector=Sus_B2_topFeatures_mRMR_SVMRFE,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_SSRI_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
+svmL_sus_B2_ROC_Any_SSRI <- svmL_Train_Best_Tune_ROC(x=1000,vector=Sus_B2_topFeatures_mRMR_SVMRFE,matrix=Sus_B2_Batch1,exposure=Any_Batch1_SSRI_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
 
-colnames(Train_AUC_DF) <- c("Number","RF","svmL","svmR")
-rownames(Train_AUC_DF) <- as.numeric(Train_AUC_DF[,1])
+svmR_sus_B2_ROC_Sus_B2 <- svmR_Train_Best_Tune_ROC(x=1000,vector=Sus_B2_topFeatures_mRMR_SVMRFE,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_B2_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
+svmR_sus_B2_ROC_Sus_SSRI <- svmR_Train_Best_Tune_ROC(x=1000,vector=Sus_B2_topFeatures_mRMR_SVMRFE,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_SSRI_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
+svmR_sus_B2_ROC_Any_SSRI <- svmR_Train_Best_Tune_ROC(x=1000,vector=Sus_B2_topFeatures_mRMR_SVMRFE,matrix=Sus_B2_Batch1,exposure=Any_Batch1_SSRI_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
 
-setwd("/mnt/home/david_boamah/New_Data_Analysis/Tables")
-write.csv(Train_AUC_DF,file="Sus_B2_Train_AUC.csv")
-
-
-RF_sus_B2_pred_Sus_B2 <- RF_Train_Best_Tune_pred(x=1000,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_B2_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
-RF_sus_B2_pred_Sus_SSRI <- RF_Train_Best_Tune_pred(x=1000,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_SSRI_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
-RF_sus_B2_pred_Any_SSRI <- RF_Train_Best_Tune_pred(x=1000,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_Batch1,exposure=Any_Batch1_SSRI_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
-
-svmL_sus_B2_pred_Sus_B2 <- svmL_Train_Best_Tune_pred(x=1000,vector=Sus_B2_topFeatures_mRMR_SVMRFE,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_B2_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
-svmL_sus_B2_pred_Sus_SSRI <- svmL_Train_Best_Tune_pred(x=1000,vector=Sus_B2_topFeatures_mRMR_SVMRFE,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_SSRI_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
-svmL_sus_B2_pred_Any_SSRI <- svmL_Train_Best_Tune_pred(x=1000,vector=Sus_B2_topFeatures_mRMR_SVMRFE,matrix=Sus_B2_Batch1,exposure=Any_Batch1_SSRI_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
-
-svmR_sus_B2_pred_Sus_B2 <- svmR_Train_Best_Tune_pred(x=1000,vector=Sus_B2_topFeatures_mRMR_SVMRFE,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_B2_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
-svmR_sus_B2_pred_Sus_SSRI <- svmR_Train_Best_Tune_pred(x=1000,vector=Sus_B2_topFeatures_mRMR_SVMRFE,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_SSRI_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
-svmR_sus_B2_pred_Any_SSRI <- svmR_Train_Best_Tune_pred(x=1000,vector=Sus_B2_topFeatures_mRMR_SVMRFE,matrix=Sus_B2_Batch1,exposure=Any_Batch1_SSRI_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
-
-
-setwd("/mnt/home/david_boamah/New_Data_Analysis/Tables")
-write.csv(RF_sus_B2_pred_Sus_B2,file="RF_sus_B2_pred_Sus_B2.csv")
-write.csv(RF_sus_B2_pred_Sus_SSRI,file="RF_sus_B2_pred_Sus_SSRI.csv")
-write.csv(RF_sus_B2_pred_Any_SSRI,file="RF_sus_B2_pred_Any_SSRI.csv")
-
-write.csv(svmL_sus_B2_pred_Sus_B2,file="svmL_sus_B2_pred_Sus_B2.csv")
-write.csv(svmL_sus_B2_pred_Sus_SSRI,file="svmL_sus_B2_pred_Sus_SSRI.csv")
-write.csv(svmL_sus_B2_pred_Any_SSRI,file="svmL_sus_B2_pred_Any_SSRI.csv")
-
-write.csv(svmR_sus_B2_pred_Sus_B2,file="svmR_sus_B2_pred_Sus_B2.csv")
-write.csv(svmR_sus_B2_pred_Sus_SSRI,file="svmR_sus_B2_pred_Sus_SSRI.csv")
-write.csv(svmR_sus_B2_pred_Any_SSRI,file="svmR_sus_B2_pred_Any_SSRI.csv")
-
-######################################
-## Sustained B2
-
-setwd("/mnt/home/david_boamah/New_Data_Analysis/Scripts_Directory/TrainingModels")
-source("Training_ROC_Objects.R")
-
-setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
-load("topFeatures_Sus_B2_5CV.rda")
-load("B2_Sustained_Inputs.rda")
-load("Filter_M_B2_Sustained.rda")
-load("varSelRF_Sus_B2_object.rda")
-
-library(caret)
-library(pROC)
-library(dplyr)
-
-B2_varSel_nonBoot <- UpSamp_B2_Sustained_varSel_object$all.data.run
-head(B2_varSel_nonBoot$initialImportance)
-Ordered_B2_Sus_Importance <- B2_varSel_nonBoot$initialImportance
-Ordered_B2_Sus_Importance <- as.data.frame(Ordered_B2_Sus_Importance)
-Ordered_B2_Sus_Importance$Names <- rownames(Ordered_B2_Sus_Importance)
-Ordered_B2_Sus_Importance <- arrange(Ordered_B2_Sus_Importance,desc(Ordered_B2_Sus_Importance[,1]))
-head(Ordered_B2_Sus_Importance)
-
-for (i in 1:length(rownames(Ordered_B2_Sus_Importance))){
-  Ordered_B2_Sus_Importance$Index[i] <- which(colnames(B2_Sustained_TrainingFeatures_Filter)==Ordered_B2_Sus_Importance$Names[i])
-}
-
-OG_Train_RF_4_Best <- RF_Train_Best(x=4,vector=Ordered_B2_Sus_Importance[,3],matrix=B2_Sustained_TrainingFeatures_Filter,exposure=B2_Sustained_Training)
-# ROC: 0.9912621 Sens: 0.9961165  Spec: 0.4 ROCsd: 0.009948496 Sens_sd: 0.008683759 Spec_sd: 0.41833
-
-OG_RF_BestTune <- RF_Train_Best_Tune(x=4,vector=Ordered_B2_Sus_Importance[,3],matrix=B2_Sustained_TrainingFeatures_Filter,exposure=B2_Sustained_Training)
-
-OG_Train_RF_4_ROC <- RF_Train_ROC(x=4,vector=Ordered_B2_Sus_Importance[,3],matrix=B2_Sustained_TrainingFeatures_Filter,exposure=B2_Sustained_Training)
-#AUROC: 0.9939
-
-Random_Train_RF_ROC_list <- list()
-Random_Train_RF_auc_list <- list()
-
-set.seed(123)
-for(i in 1:1000){
-	Random_Train_RF_ROC_list[i] <- list(Random_RF_Train_ROC(x=4,matrix=M_B2_Sustained_TrainingFeatures,exposure=B2_Sustained_Training))
-}
-# Mean AUROC: 0.5643 (Range: 0.2812–0.8062)
-
-Random_Train_RF_auc_list <- sapply(X=Random_Train_RF_ROC_list,FUN=auc)
-
-OG_Train_svmL_9_Best <- svmL_Train_best(x=9,vector=top.features$FeatureID,matrix=B2_Sustained_TrainingFeatures_Filter,exposure=B2_Sustained_Training)
-# ROC: 0.9631068; Sens: 0.9941748;  Spec: 0.5; ROCsd: 0.07446355; Sens_sd: 0.005317695; Spec_sd: 0
-
-OG_svmL_BestTune <- svmL_Train_best_tune(x=9,vector=top.features$FeatureID,matrix=B2_Sustained_TrainingFeatures_Filter,exposure=B2_Sustained_Training)
-
-OG_Train_svmL_9_ROC <- svmL_Train_ROC(x=9,vector=top.features$FeatureID,matrix=B2_Sustained_TrainingFeatures_Filter,exposure=B2_Sustained_Training)
-#AUROC: 0.9448
-
-Random_Train_svmL_ROC_list <- list()
-Random_Train_svmL_auc_list <- list()
-
-set.seed(123)
-for(i in 1:1000){
-	Random_Train_svmL_ROC_list[i] <- list(Random_svmL_Train_ROC(x=9,matrix=M_B2_Sustained_TrainingFeatures,exposure=B2_Sustained_Training))
-}
-#Mean AUROC: 0.5602 (Range: 0.4159–0.7919)
-
-Random_Train_svmL_auc_list <- sapply(X=Random_Train_svmL_ROC_list,FUN=auc)
-
-OG_Train_svmR_9_Best <- svmR_Train_best(x=9,vector=top.features$FeatureID,matrix=B2_Sustained_TrainingFeatures_Filter,exposure=B2_Sustained_Training)
-#ROC: 0.9252707 Sens: 0.9961165  Spec: 0.1 ROCsd: 0.1216965 Sens_sd: 0.005317695 Spec_sd: 0.2236068
-
-OG_svmR_BestTune <- svmR_Train_best_tune(x=9,vector=top.features$FeatureID,matrix=B2_Sustained_TrainingFeatures_Filter,exposure=B2_Sustained_Training)
-
-OG_Train_svmR_9_ROC <- svmR_Train_ROC(x=9,vector=top.features$FeatureID,matrix=B2_Sustained_TrainingFeatures_Filter,exposure=B2_Sustained_Training)
-#AUROC: 0.9399
-
-Random_Train_svmR_ROC_list <- list()
-Random_Train_svmR_auc_list <- list()
-
-set.seed(123)
-for(i in 1:1000){
-	Random_Train_svmR_ROC_list[i] <- list(Random_svmR_Train_ROC(x=9,matrix=M_B2_Sustained_TrainingFeatures,exposure=B2_Sustained_Training))
-}
-# Mean AUROC: 0.5662 (Range: 0.3831–0.7940)
-
-Random_Train_svmR_auc_list <- sapply(X=Random_Train_svmR_ROC_list, FUN=auc)
-
-#Creat ROC Curve Plots
-
-setwd("/mnt/home/david_boamah/New_Data_Analysis/Results_Graphics/ROC_Curves_1")
-
-pdf("Sus_B2_RF_Random_ROC.pdf", 7, 5)
-par(pty="s")
-plot.roc(OG_Train_RF_4_ROC,col="black",lwd=2)
-set.seed(123)
-replicate(1000,Random_RF_Plot_Train_ROC(x=4,matrix=M_B2_Sustained_TrainingFeatures,exposure=B2_Sustained_Training))
-dev.off()
-
-pdf("Sus_B2_svmL_Random_ROC.pdf", 7, 5)
-par(pty="s")
-plot.roc(OG_Train_svmL_9_ROC,col="black",lwd=2)
-set.seed(123)
-replicate(1000,Random_svmL_Plot_Train_ROC(x=9,matrix=M_B2_Sustained_TrainingFeatures,exposure=B2_Sustained_Training))
-dev.off()
-
-pdf("Sus_B2_svmR_Random_ROC.pdf", 7, 5)
-par(pty="s")
-plot.roc(OG_Train_svmR_9_ROC,col="black",lwd=2)
-set.seed(123)
-replicate(1000,Random_svmR_Plot_Train_ROC(x=9,matrix=M_B2_Sustained_TrainingFeatures,exposure=B2_Sustained_Training))
-dev.off()
-
-RF_sus_B2_pred_Sus_B2 <- RF_Train_Best_tune(x=1000,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_B2_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
-svmL_sus_B2_pred_Sus_B2 <- svmL_Train_Best_Tune(x=1000,vector=Sus_B2_topFeatures_mRMR_SVMRFE,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_B2_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
-svmR_sus_B2_pred_Sus_B2 <- svmR_Train_Best_Tune(x=1000,vector=Sus_B2_topFeatures_mRMR_SVMRFE,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_B2_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
+### Determine the specificity of the features selected using the mRMR filter feature approach by calculating the training performance of 1000 models built using 1000 features randomly selected from the full 455,644 features
 
 OG_RF_BestTune <- RF_Train_Best_Tune(x=1000,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_B2_Use)
 OG_svmL_BestTune <- svmL_Train_best_tune(x=1000,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_B2_Use)
 OG_svmR_BestTune <- svmR_Train_best_tune(x=1000,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_B2_Use)
-
 
 Random_Train_RF_ROC_list <- list()
 Random_Train_RF_auc_list <- list()
@@ -197,7 +50,6 @@ for(i in 1:1000){
 #Mean AUROC: 0.5534 (Range: 0.4194–0.7546)
 
 Random_Train_RF_auc_list <- sapply(X=Random_Train_RF_ROC_list,FUN=auc)
-
 
 Random_Train_svmL_ROC_list <- list()
 Random_Train_svmL_auc_list <- list()
