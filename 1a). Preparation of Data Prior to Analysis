@@ -1,11 +1,10 @@
 
 ############################# Preparation of Sample Data #############################
 
+## The "Sample_Linker_Data" dataset was previously created to serve to link samples by the Sample IDs used during the collection of DNAm signatures and FamilyID (used with SEED datasets in the RDA)
+## This will then serve to combine datasets for DNAm signatures (M-values pre-batch correction with ComBat), exposure status (SSRI and B2AR exposure), and additional covariate information
 
-
-
-# SampleLinker.R
-##Part 1: Create linker file. Includes sample's sex and batch number
+##Part 1: Create linker file. Includes sample's sex and batch number. This will subsequently be merged with the exposure data cleaned using the code April provided
 
 setwd("/mnt/home/david_boamah/Data_Analysis/rda_Files")
 load("SampleLinkerData.rda")
@@ -23,7 +22,7 @@ rownames(combine_1) <- combine_1$FamilyID.x
 combine_1 <- select(combine_1, -(Row.names:PV_GND))
 combine_1 <- select(combine_1, -(FamilyID.y))
 
-### Collect and merge ASD case status information to linker data information
+### Collect and merge ASD case status information from the ImputedDataset directory to linker data information
 
 GEWIS1_DF <- read.table("/mnt/datasets/SEED_genetics/MD_GEWIS_Waves1-3/GWASfiles/ImputedDataset/GEWIS1.sample",header=T)
 GEWIS1_DF <- tail(GEWIS1_DF,n=((length(rownames(GEWIS1_DF))-1)))
@@ -40,13 +39,14 @@ rownames(FC_Pheno_DF) <- FC_Pheno_DF$ID_1
 FC_Pheno_DF <- select(FC_Pheno_DF,(7))
 head(FC_Pheno_DF)
 
-
 CaseControl_Merge <- merge(combine_1,FC_Pheno_DF,by=0,all.x=TRUE)
 dim(CaseControl_Merge)
 summary(CaseControl_Merge)
 
 #2 is "CASE"; 1 is "POP"
 ##439 Cases, with 504 Controls;27 missing
+
+## As exposure status is currently a numeric, the following code (albeit inefficient) was used to make each column a set of factors
 
 CaseControl_Merge$any_b2use <- factor(CaseControl_Merge$any_b2use)
 CaseControl_Merge$any_ssriuse <- factor(CaseControl_Merge$any_ssriuse)
@@ -57,6 +57,7 @@ CaseControl_Merge$ssri_tri2 <- factor(CaseControl_Merge$ssri_tri2)
 CaseControl_Merge$b2_tri3 <- factor(CaseControl_Merge$b2_tri3)
 CaseControl_Merge$ssri_tri3 <- factor(CaseControl_Merge$ssri_tri3)
 
+## Split the data table first by exposure status (exposed and unexposed) and then by batch (Batch 1 and Batch 2)
 
 split_ssri <- split(CaseControl_Merge, f= CaseControl_Merge$any_ssriuse)
 
@@ -74,8 +75,6 @@ two_ssri_unexposed <- split_split_ssriunexposed[[2]]
 one_ssri_exposed <- split_split_ssriexposed[[1]]
 two_ssri_exposed <- split_split_ssriexposed[[2]]
 
-
-
 split_b2_unexposed <- split_b2[[1]]
 split_b2_exposed <- split_b2[[2]]
 
@@ -88,16 +87,7 @@ two_b2_unexposed <- split_split_b2unexposed[[2]]
 one_b2_exposed <- split_split_b2exposed[[1]]
 two_b2_exposed <- split_split_b2exposed[[2]]
 
-
-
-
-
-
-
-
-
 split_DF <- split(CaseControl_Merge, f = CaseControl_Merge$Batch)
-
 
 summary(split_DF[[1]])
 summary(split_DF[[2]])
@@ -114,6 +104,8 @@ length(which(Complete_Exposure_Data$any_b2use==1&Complete_Exposure_Data$any_ssri
 
 Complete_Exposure_Data$Rownames <- rownames(Complete_Exposure_Data)
 
+## Remove samples that were prenatally exposed to both SSRIs and B2AR agonists
+
 Complete_Exposure_Data_noDUBS <- filter(Complete_Exposure_Data, !(any_b2use==1 & any_ssriuse==1))
 ##Gives 962 peeps
 
@@ -125,8 +117,6 @@ Complete_Exposure_Data_noDUBS$b2_tri2 <- factor(Complete_Exposure_Data_noDUBS$b2
 Complete_Exposure_Data_noDUBS$ssri_tri2 <- factor(Complete_Exposure_Data_noDUBS$ssri_tri2, levels=c(0,1))
 Complete_Exposure_Data_noDUBS$b2_tri3 <- factor(Complete_Exposure_Data_noDUBS$b2_tri3, levels=c(0,1))
 Complete_Exposure_Data_noDUBS$ssri_tri3 <- factor(Complete_Exposure_Data_noDUBS$ssri_tri3, levels=c(0,1))
-
-
 
 summary(Complete_Exposure_Data_noDUBS)
 ##72 total peeps with B2 use; 61 peeps with SSRI use (any)
@@ -189,7 +179,6 @@ summary(SSRI_Combined_Training_AnyUse)
 
 head(SSRI_Combined_Training_AnyUse)
 
-###############
 SSRI_Combined_Test_AnyUse <- rbind(Test_Unexposed,SSRI_Test_AnyUse_Exposed)
 rownames(SSRI_Combined_Test_AnyUse) <- SSRI_Combined_Test_AnyUse$Rownames
 SSRI_Combined_Test_AnyUse <- select(SSRI_Combined_Test_AnyUse,-(Rownames))
@@ -199,13 +188,10 @@ summary(SSRI_Combined_Test_AnyUse)
 ###20 exposed
 ##T1:13; T2:12: T3:11; Missing:4
 
-
 SSRI_Combined_Test_AnyUse$SSRI_Any <- with(SSRI_Combined_Test_AnyUse, ifelse(any_ssriuse==1, 1, 0))
 SSRI_Combined_Test_AnyUse$SSRI_Any <- factor(SSRI_Combined_Test_AnyUse$SSRI_Any,levels=c(0,1))
 SSRI_Combined_Test_AnyUse <- select(SSRI_Combined_Test_AnyUse,SSRI_Any)
 summary(SSRI_Combined_Test_AnyUse)
-
-
 
 ###############
 SSRI_Combined_Training_SustainedUse <- rbind(Training_Unexposed,SSRI_Training_SustainedUse_Exposed)
