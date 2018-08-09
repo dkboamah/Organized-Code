@@ -178,5 +178,45 @@ set.seed(123)
 replicate(1000,Random_svmR_Plot_Train_ROC(x=9,matrix=M_B2_Sustained_TrainingFeatures,exposure=B2_Sustained_Training))
 dev.off()
 
+RF_sus_B2_pred_Sus_B2 <- RF_Train_Best_tune(x=1000,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_B2_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
+svmL_sus_B2_pred_Sus_B2 <- svmL_Train_Best_Tune(x=1000,vector=Sus_B2_topFeatures_mRMR_SVMRFE,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_B2_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
+svmR_sus_B2_pred_Sus_B2 <- svmR_Train_Best_Tune(x=1000,vector=Sus_B2_topFeatures_mRMR_SVMRFE,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_B2_Use,matrixSecond=Sus_B2_top_1000_M_training,exposureSecond=B2_Sustained_Training)
 
+OG_RF_BestTune <- RF_Train_Best_Tune(x=1000,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_B2_Use)
+OG_svmL_BestTune <- svmL_Train_best_tune(x=1000,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_B2_Use)
+OG_svmR_BestTune <- svmR_Train_best_tune(x=1000,vector=Sus_B2_mRMR_VarSel_Index_noReOrder,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_B2_Use)
+
+
+Random_Train_RF_ROC_list <- list()
+Random_Train_RF_auc_list <- list()
+
+set.seed(123)
+for(i in 1:1000){
+	Random_Train_RF_ROC_list[i] <- list(Random_RF_Train_ROC(x=1000,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_B2_Use))
+}
+#Mean AUROC: 0.5534 (Range: 0.4194–0.7546)
+
+Random_Train_RF_auc_list <- sapply(X=Random_Train_RF_ROC_list,FUN=auc)
+
+
+Random_Train_svmL_ROC_list <- list()
+Random_Train_svmL_auc_list <- list()
+
+set.seed(123)
+for(i in 1:1000){
+	Random_Train_svmL_ROC_list[i] <- list(Random_svmL_Train_ROC(x=1000,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_B2_Use))
+}
+
+Random_Train_svmL_auc_list <- sapply(X=Random_Train_svmL_ROC_list,FUN=auc)
+
+Random_Train_svmR_ROC_list <- list()
+Random_Train_svmR_auc_list <- list()
+
+set.seed(123)
+for(i in 1:1000){
+	Random_Train_svmR_ROC_list[i] <- list(Random_svmR_Train_ROC(x=1000,matrix=Sus_B2_Batch1,exposure=Sus_Batch1_B2_Use))
+}
+#Mean AUROC: 0.5557 (Range: 0.3959 – 0.7912)
+
+Random_Train_svmR_auc_list <- sapply(X=Random_Train_svmR_ROC_list,FUN=auc)
 
