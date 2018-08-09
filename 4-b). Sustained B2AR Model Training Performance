@@ -1,7 +1,4 @@
 
-##########################################
-## Sustained B2 Use 
-
 library(caret)
 library(pROC)
 
