@@ -96,7 +96,6 @@ Complete_Exposure_Data <- combine_1
 rownames(Complete_Exposure_Data) <- Complete_Exposure_Data$Rownames
 Complete_Exposure_Data <- select(Complete_Exposure_Data,-(Rownames))
 
-
 length(which(Complete_Exposure_Data$any_b2use==1&Complete_Exposure_Data$any_ssriuse==1))
 ##8 peeps with both ssri and b2 usage
 ## 6 from batch 1; 2 from batch 2
@@ -136,6 +135,9 @@ dim(Test_Unexposed)
 ##Males=221;Females=92 
 
 summary(Test_Unexposed)
+
+#*************************************************************
+### Generate exposure status vectors (Sustained/Any exposure to SSRI) for both training sets (Batch 1) and test sets (Batch 2)
 
 SSRI_Training_AnyUse_Exposed <- filter(Complete_Exposure_Data_noDUBS, !(any_ssriuse==0 | Batch==2))
 summary(SSRI_Training_AnyUse_Exposed)
@@ -193,7 +195,6 @@ SSRI_Combined_Test_AnyUse$SSRI_Any <- factor(SSRI_Combined_Test_AnyUse$SSRI_Any,
 SSRI_Combined_Test_AnyUse <- select(SSRI_Combined_Test_AnyUse,SSRI_Any)
 summary(SSRI_Combined_Test_AnyUse)
 
-###############
 SSRI_Combined_Training_SustainedUse <- rbind(Training_Unexposed,SSRI_Training_SustainedUse_Exposed)
 rownames(SSRI_Combined_Training_SustainedUse) <- SSRI_Combined_Training_SustainedUse$Rownames
 SSRI_Combined_Training_SustainedUse <- select(SSRI_Combined_Training_SustainedUse,-(Rownames))
@@ -207,8 +208,6 @@ SSRI_Combined_Training_SustainedUse$SSRI_Sustain <- factor(SSRI_Combined_Trainin
 SSRI_Combined_Training_SustainedUse <- select(SSRI_Combined_Training_SustainedUse,SSRI_Sustain)
 summary(SSRI_Combined_Training_SustainedUse)
 
-
-###############
 SSRI_Combined_Test_SustainedUse <- rbind(Test_Unexposed,SSRI_Test_SustainedUse_Exposed)
 rownames(SSRI_Combined_Test_SustainedUse) <- SSRI_Combined_Test_SustainedUse$Rownames
 SSRI_Combined_Test_SustainedUse <- select(SSRI_Combined_Test_SustainedUse,-(Rownames))
@@ -222,10 +221,11 @@ SSRI_Combined_Test_SustainedUse$SSRI_Sustain <- factor(SSRI_Combined_Test_Sustai
 SSRI_Combined_Test_SustainedUse <- select(SSRI_Combined_Test_SustainedUse,SSRI_Sustain)
 summary(SSRI_Combined_Test_SustainedUse)
 
+#*************************************************************
 
+#*************************************************************
+### Generate exposure status vectors (Sustained/Any exposure to B2AR agonists) for both training sets (Batch 1) and test sets (Batch 2)
 
-
-#########################################################
 B2_Training_AnyUse_Exposed <- filter(Complete_Exposure_Data_noDUBS, !(any_b2use==0 | Batch==2))
 summary(B2_Training_AnyUse_Exposed)
 
@@ -252,8 +252,6 @@ summary(B2_Test_SustainedUse_Exposed)
 ###10 peeps
 ##Male:8;Female:2
 
-
-###############
 B2_Combined_Training_AnyUse <- rbind(Training_Unexposed,B2_Training_AnyUse_Exposed)
 rownames(B2_Combined_Training_AnyUse) <- B2_Combined_Training_AnyUse$Rownames
 B2_Combined_Training_AnyUse <- select(B2_Combined_Training_AnyUse,-(Rownames))
@@ -267,8 +265,6 @@ B2_Combined_Training_AnyUse$B2_Any <- factor(B2_Combined_Training_AnyUse$B2_Any,
 B2_Combined_Training_AnyUse <- select(B2_Combined_Training_AnyUse,B2_Any)
 summary(B2_Combined_Training_AnyUse)
 
-
-###############
 B2_Combined_Test_AnyUse <- rbind(Test_Unexposed,B2_Test_AnyUse_Exposed)
 rownames(B2_Combined_Test_AnyUse) <- B2_Combined_Test_AnyUse$Rownames
 B2_Combined_Test_AnyUse <- select(B2_Combined_Test_AnyUse, -(Rownames))
@@ -282,8 +278,6 @@ B2_Combined_Test_AnyUse$B2_Any <- factor(B2_Combined_Test_AnyUse$B2_Any,levels=c
 B2_Combined_Test_AnyUse <- select(B2_Combined_Test_AnyUse,B2_Any)
 summary(B2_Combined_Test_AnyUse)
 
-
-###############
 B2_Combined_Training_SustainedUse <- rbind(Training_Unexposed,B2_Training_SustainedUse_Exposed)
 rownames(B2_Combined_Training_SustainedUse) <- B2_Combined_Training_SustainedUse$Rownames
 B2_Combined_Training_SustainedUse <- select(B2_Combined_Training_SustainedUse,-(Rownames))
@@ -297,9 +291,6 @@ B2_Combined_Training_SustainedUse$B2_Sustain <- factor(B2_Combined_Training_Sust
 B2_Combined_Training_SustainedUse <- select(B2_Combined_Training_SustainedUse,B2_Sustain)
 summary(B2_Combined_Training_SustainedUse)
 
-
-
-################
 B2_Combined_Test_SustainedUse <- rbind(Test_Unexposed,B2_Test_SustainedUse_Exposed)
 rownames(B2_Combined_Test_SustainedUse) <- B2_Combined_Test_SustainedUse$Rownames
 B2_Combined_Test_SustainedUse <- select(B2_Combined_Test_SustainedUse,-(Rownames))
@@ -313,23 +304,21 @@ B2_Combined_Test_SustainedUse$B2_Sustain <- factor(B2_Combined_Test_SustainedUse
 B2_Combined_Test_SustainedUse <- select(B2_Combined_Test_SustainedUse,B2_Sustain)
 summary(B2_Combined_Test_SustainedUse)
 
-################################################
+#*************************************************************
+
+### Save exposure data files
 
 setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
 
 save(Training_Unexposed,Test_Unexposed,SSRI_Training_AnyUse_Exposed,SSRI_Test_AnyUse_Exposed,SSRI_Training_SustainedUse_Exposed,SSRI_Test_SustainedUse_Exposed,B2_Training_AnyUse_Exposed,B2_Test_AnyUse_Exposed,B2_Training_SustainedUse_Exposed,B2_Test_SustainedUse_Exposed, file = "Individual_Data_Sets_onlyExposure.rda")
 
 save(SSRI_Combined_Test_SustainedUse,SSRI_Combined_Training_SustainedUse, file = "SSRI_SustainedUse_onlyExposure.rda")
-
 save(B2_Combined_Test_SustainedUse,B2_Combined_Training_SustainedUse, file = "B2_SustainedUse_onlyExposure.rda")
-
 save(SSRI_Combined_Test_AnyUse,SSRI_Combined_Training_AnyUse, file = "SSRI_AnyUse_onlyExposure.rda")
-
 save(B2_Combined_Test_AnyUse,B2_Combined_Training_AnyUse, file = "B2_AnyUse_onlyExposure.rda")
 
-
-
-##Obtain_SSRI_Sustained_Any_Values.R
+### Organize and merge M-value dataset information with exposure status
+## For SSRIs
 
 setwd("/mnt/home/david_boamah/Original_Files")
 load("M_PREbatchcorr.rda")
@@ -345,7 +334,6 @@ Combine_M_SSRI_Sustained_Training <- merge(SSRI_Combined_Training_SustainedUse, 
 rownames(Combine_M_SSRI_Sustained_Training) <- Combine_M_SSRI_Sustained_Training$Row.names
 Combine_M_SSRI_Sustained_Training <- select(Combine_M_SSRI_Sustained_Training, -(Row.names))
 
-
 Combine_M_SSRI_Sustained_Test <- merge(SSRI_Combined_Test_SustainedUse, M_PRE_DF_transposed, by = 0)
 rownames(Combine_M_SSRI_Sustained_Test) <- Combine_M_SSRI_Sustained_Test$Row.names
 Combine_M_SSRI_Sustained_Test <- select(Combine_M_SSRI_Sustained_Test, -(Row.names))
@@ -354,19 +342,13 @@ SSRI_Sustained_Training <- Combine_M_SSRI_Sustained_Training$SSRI_Sustain
 SSRI_Sustained_Test <- Combine_M_SSRI_Sustained_Test$SSRI_Sustain
 
 M_SSRI_Sustained_TrainingFeatures <- as.matrix(select(Combine_M_SSRI_Sustained_Training,-(1)))
-
 M_SSRI_Sustained_TestFeatures <- as.matrix(select(Combine_M_SSRI_Sustained_Test,-(1)))
 
 setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
-
 save(SSRI_Sustained_Training,SSRI_Sustained_Test,M_SSRI_Sustained_TrainingFeatures,M_SSRI_Sustained_TestFeatures, file = "SSRI_Sustained_Inputs.rda")
 
-
-
-
-
-
-##Obtain_B2_Sustained_Any_Values.R
+### Organize and merge M-value dataset information with exposure status
+## For B2AR agonists
 
 setwd("/mnt/home/david_boamah/Original_Files")
 load("M_PREbatchcorr.rda")
@@ -382,7 +364,6 @@ Combine_M_B2_Sustained_Training <- merge(B2_Combined_Training_SustainedUse, M_PR
 rownames(Combine_M_B2_Sustained_Training) <- Combine_M_B2_Sustained_Training$Row.names
 Combine_M_B2_Sustained_Training <- select(Combine_M_B2_Sustained_Training, -(Row.names))
 
-
 Combine_M_B2_Sustained_Test <- merge(B2_Combined_Test_SustainedUse, M_PRE_DF_transposed, by = 0)
 rownames(Combine_M_B2_Sustained_Test) <- Combine_M_B2_Sustained_Test$Row.names
 Combine_M_B2_Sustained_Test <- select(Combine_M_B2_Sustained_Test, -(Row.names))
@@ -395,11 +376,11 @@ M_B2_Sustained_TrainingFeatures <- as.matrix(select(Combine_M_B2_Sustained_Train
 M_B2_Sustained_TestFeatures <- as.matrix(select(Combine_M_B2_Sustained_Test,-(1)))
 
 setwd("/mnt/home/david_boamah/New_Data_Analysis/rda_Files")
-
 save(B2_Sustained_Training,B2_Sustained_Test,M_B2_Sustained_TrainingFeatures,M_B2_Sustained_TestFeatures, file = "B2_Sustained_Inputs.rda")
 
+############################################ Efficient Batch 1 Data Preparation #######################################################
 
-######################################################################################################
+## Preparation of Batch 1 exposure and DNAm data table without additionally refining the data by removing individual samples (e.g. the control of SSRI exposure includes individuals with exposure to B2AR agonist exposure)
 
 setwd("/mnt/home/david_boamah/Data_Analysis/rda_Files")
 load("SampleLinkerData.rda")
@@ -458,10 +439,6 @@ Sus_Batch1_B2_Use <- Total_Exposure_Data[,12]
 
 setwd("/mnt/home/david_boamah/Data_Analysis/rda_Files")
 save(Batch1_M_Matrix,Any_Batch1_SSRI_Use,Any_Batch1_B2_Use,Sus_Batch1_SSRI_Use,Sus_Batch1_B2_Use,file="Batch1_Data.rda")
-
-
-
-
 
 
 ################################# Preparation of Test Data Samples #################################
@@ -527,11 +504,6 @@ Sus_Batch2_B2_Use <- Total_Exposure_Data[,12]
 
 setwd("/mnt/home/david_boamah/Data_Analysis/rda_Files")
 save(Batch2_M_Matrix,Any_Batch2_SSRI_Use,Any_Batch2_B2_Use,Sus_Batch2_SSRI_Use,Sus_Batch2_B2_Use,file="Batch2_Data.rda")
-
-
-
-
-
 
 ################################# Preparation of All (960) Data Samples #################################
 
